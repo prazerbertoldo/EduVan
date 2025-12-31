@@ -1,0 +1,20 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Acesso Negado</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>❌ Acesso Negado</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p>Você não tem permissão para acessar esta área.</p>
+      <p>Seu tipo de usuário: <strong>{{ user?.tipo }}</strong></p>
+      <ion-button expand="block" (click)="voltar()">
+        Voltar para o Login
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

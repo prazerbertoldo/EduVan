@@ -1,0 +1,94 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>Cadastro de Usuário</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="cadastroForm" (ngSubmit)="onSubmit()">
+    <!-- Nome -->
+    <ion-item>
+      <ion-label position="floating">Nome completo *</ion-label>
+      <ion-input formControlName="nome" type="text" required></ion-input>
+    </ion-item>
+    <ion-note color="danger" *ngIf="cadastroForm.get('nome')?.invalid && cadastroForm.get('nome')?.touched">
+      Nome é obrigatório
+    </ion-note>
+
+    <!-- Email -->
+    <ion-item>
+      <ion-label position="floating">Email *</ion-label>
+      <ion-input formControlName="email" type="email" required></ion-input>
+    </ion-item>
+    <ion-note color="danger" *ngIf="cadastroForm.get('email')?.invalid && cadastroForm.get('email')?.touched">
+      Email inválido
+    </ion-note>
+
+    <!-- Telefone -->
+    <ion-item>
+      <ion-label position="floating">Telefone *</ion-label>
+      <ion-input formControlName="telefone" type="tel" placeholder="(11) 99999-9999" required></ion-input>
+    </ion-item>
+    <ion-note color="danger" *ngIf="cadastroForm.get('telefone')?.invalid && cadastroForm.get('telefone')?.touched">
+      Telefone é obrigatório
+    </ion-note>
+
+    <!-- Senha -->
+    <ion-item>
+      <ion-label position="floating">Senha *</ion-label>
+      <ion-input formControlName="senha" type="password" required></ion-input>
+    </ion-item>
+    <ion-note color="danger" *ngIf="cadastroForm.get('senha')?.invalid && cadastroForm.get('senha')?.touched">
+      Senha deve ter pelo menos 6 caracteres
+    </ion-note>
+
+    <!-- Tipo de usuário -->
+    <ion-item>
+      <ion-label>Tipo de usuário *</ion-label>
+      <ion-select formControlName="tipo" interface="action-sheet" required>
+        <ion-select-option value="">Selecione o tipo</ion-select-option>
+        <ion-select-option value="1">Aluno</ion-select-option>
+        <ion-select-option value="2">Motorista</ion-select-option>
+        <ion-select-option value="3">Administrador</ion-select-option>
+      </ion-select>
+    </ion-item>
+    <ion-note color="danger" *ngIf="cadastroForm.get('tipo')?.invalid && cadastroForm.get('tipo')?.touched">
+      Tipo de usuário é obrigatório
+    </ion-note>
+
+    <!-- CNH (apenas para motoristas) -->
+    <div *ngIf="showCnhField">
+      <ion-item>
+        <ion-label position="floating">CNH do Motorista *</ion-label>
+        <ion-input formControlName="cnh" type="text"></ion-input>
+      </ion-item>
+      <ion-note color="danger" *ngIf="cadastroForm.get('cnh')?.invalid && cadastroForm.get('cnh')?.touched">
+        CNH é obrigatória para motoristas
+      </ion-note>
+    </div>
+
+    <!-- Botão de cadastro -->
+    <ion-button 
+      type="submit" 
+      expand="block" 
+      [disabled]="!cadastroForm.valid" 
+      class="ion-margin-top"
+    >
+      <ion-icon name="person-add" slot="start"></ion-icon>
+      Cadastrar
+    </ion-button>
+
+    <!-- Link para login -->
+    <ion-button 
+      expand="block" 
+      fill="clear" 
+      routerLink="/login-aluno"
+      class="ion-margin-top"
+    >
+      Já tem uma conta? Faça login
+    </ion-button>
+  </form>
+</ion-content>

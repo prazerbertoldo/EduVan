@@ -1,0 +1,114 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="cancelar()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{endereco ? 'Editar' : 'Adicionar'}} Endereço</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="salvarEndereco()" [strong]="true">
+        <ion-icon name="checkmark" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form [formGroup]="enderecoForm">
+    <!-- Campos do formulário -->
+    <ion-item fill="outline" class="ion-margin-bottom">
+      <ion-label position="stacked">Nome do Endereço *</ion-label>
+      <ion-input formControlName="nome" placeholder="Ex: Casa, Trabalho" type="text"></ion-input>
+    </ion-item>
+
+    <ion-item fill="outline" class="ion-margin-bottom">
+      <ion-label position="stacked">Descrição *</ion-label>
+      <ion-textarea formControlName="descricao" placeholder="Descreva este endereço..." rows="3"></ion-textarea>
+    </ion-item>
+
+    <!-- Segment -->
+    <ion-segment [value]="mostrarMapa ? 'mapa' : 'busca'" (ionChange)="onSegmentChange($event)">
+      <ion-segment-button value="busca">
+        <ion-label>Buscar Endereço</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="mapa">
+        <ion-label>Selecionar no Mapa</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+
+    <!-- Busca -->
+    <div *ngIf="!mostrarMapa">
+      <ion-item fill="outline" class="ion-margin-top">
+        <ion-label position="stacked">Buscar Endereço *</ion-label>
+        <ion-input 
+          formControlName="enderecoPesquisa" 
+          placeholder="Digite o endereço..."
+          type="text"
+          (ionInput)="onInputChange($event)"
+          (ionClear)="onInputClear()">
+        </ion-input>
+        <ion-button slot="end" fill="clear" (click)="buscarEnderecoManual()">
+          <ion-icon name="search"></ion-icon>
+        </ion-button>
+      </ion-item>
+
+      <div *ngIf="buscando" class="buscando-indicator">
+        <small>Buscando endereços...</small>
+      </div>
+
+      <div *ngIf="resultadosBusca.length > 0" class="resultados-busca">
+        <ion-list>
+          <ion-item *ngFor="let resultado of resultadosBusca" button (click)="selecionarEndereco(resultado)">
+            <ion-icon name="location" slot="start" color="primary"></ion-icon>
+            <ion-label class="ion-text-wrap">
+              <h3>{{ formatarEndereco(resultado) }}</h3>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </div>
+    </div>
+
+    <!-- Mapa -->
+    <div *ngIf="mostrarMapa" class="mapa-container">
+      <div *ngIf="carregandoMapa" class="mapa-loading">
+        <ion-spinner></ion-spinner>
+        <small>Carregando mapa...</small>
+      </div>
+      <div id="map" class="mapa" [class.hidden]="carregandoMapa"></div>
+      <div class="mapa-instructions">
+        <small>Clique no mapa para selecionar a localização</small>
+      </div>
+    </div>
+
+    <!-- Botão localização -->
+    <ion-button expand="block" fill="outline" (click)="usarLocalizacaoAtual()" class="ion-margin-bottom">
+      <ion-icon name="navigate" slot="start"></ion-icon>
+      Usar Minha Localização
+    </ion-button>
+
+    <!-- Endereço selecionado -->
+    <div *ngIf="enderecoSelecionado" class="endereco-selecionado">
+      <ion-card color="success">
+        <ion-card-content>
+          <p><strong>{{ enderecoSelecionado }}</strong></p>
+          <small *ngIf="coordenadas.lat">Coordenadas: {{ coordenadas.lat.toFixed(6) }}, {{ coordenadas.lng.toFixed(6) }}</small>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  </form>
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="cancelar()" fill="outline">Cancelar</ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button (click)="salvarEndereco()" [disabled]="!enderecoForm.valid || !coordenadas.lat" color="primary">
+        <ion-icon name="save" slot="start"></ion-icon>
+        Salvar
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

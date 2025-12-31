@@ -1,0 +1,181 @@
+/* src/app/pages/inicio/inicio.page.scss */
+.logo-container {
+  text-align: center;
+  margin-bottom: 20px;
+  
+  .logo {
+    height: 140px;
+    margin-bottom: 10px;
+  }
+  
+  .slogan {
+    color: var(--ion-color-medium);
+    margin-top: 0;
+  }
+}
+
+ion-button {
+  margin-bottom: 15px;
+}
+
+/* Cena completa com estrada */
+.cena-estrada {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  z-index: 1000;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Asfaltinho */
+.estrada {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 30px;
+  background: #2f3542;
+  
+  /* Linha central tracejada */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: repeating-linear-gradient(
+      90deg,
+      #f1f2f6 0px,
+      #f1f2f6 10px,
+      transparent 10px,
+      transparent 20px
+    );
+    transform: translateY(-50%);
+    animation: moverLinha 1s linear infinite;
+  }
+  
+  /* Acostamento */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: #747d8c;
+  }
+}
+
+/* Vanzinha com imagem */
+.vanzinha {
+  position: absolute;
+  bottom: 25px;
+  right: -100px; /* Começa fora da tela */
+  width: 80px;
+  height: 40px;
+  animation: moverVanzinha 8s ease-in-out infinite;
+  
+  /* Imagem da van */
+  .van-img {
+    width: 100%;
+    height: 100%;
+    background-image: url('/assets/icon/van.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
+    
+    /* Efeito de balanço suave */
+    animation: balancarVan 1s ease-in-out infinite;
+  }
+}
+
+/* Animação principal da van */
+@keyframes moverVanzinha {
+  0% {
+    right: -100px;
+    transform: translateX(0);
+  }
+  10% {
+    transform: translateX(-10vw);
+  }
+  30% {
+    transform: translateX(-30vw);
+  }
+  50% {
+    transform: translateX(-50vw);
+  }
+  70% {
+    transform: translateX(-70vw);
+  }
+  90% {
+    transform: translateX(-90vw);
+  }
+  100% {
+    right: 100%;
+    transform: translateX(-100vw);
+  }
+}
+
+/* Animação do balanço da van */
+@keyframes balancarVan {
+  0%, 100% { 
+    transform: translateY(0) rotate(0.5deg); 
+  }
+  50% { 
+    transform: translateY(-2px) rotate(-0.5deg); 
+  }
+}
+
+/* Animação da linha central (efeito de movimento) */
+@keyframes moverLinha {
+  0% {
+    transform: translateY(-50%) translateX(0);
+  }
+  100% {
+    transform: translateY(-50%) translateX(-20px);
+  }
+}
+
+@keyframes moverNuvem {
+  0% { transform: translateX(100vw); }
+  100% { transform: translateX(-100px); }
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .vanzinha {
+    width: 60px;
+    height: 30px;
+    bottom: 20px;
+  }
+  
+  .estrada {
+    height: 25px;
+  }
+  
+  .cena-estrada {
+    height: 60px;
+  }
+}
+
+/* Modo escuro */
+@media (prefers-color-scheme: dark) {
+  .estrada {
+    background: #1a1a1a;
+    
+    &::before {
+      background: repeating-linear-gradient(
+        90deg,
+        #ffd700 0px,
+        #ffd700 10px,
+        transparent 10px,
+        transparent 20px
+      );
+    }
+  }
+}

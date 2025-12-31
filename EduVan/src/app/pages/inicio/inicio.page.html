@@ -1,0 +1,32 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>EDUVAN</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+<div class="logo-container">
+  <img [src]="getLogoPath()" alt="EDUVAN Logo" class="logo">
+  <p class="slogan">Transporte escolar seguro e eficiente</p>
+</div>
+
+  <h2 class="ion-text-center">Bem-vindo à EDUVAN</h2>
+
+  <ion-button expand="block" (click)="goToLogin('aluno')">Login Aluno</ion-button>
+  <ion-button expand="block" color="secondary" (click)="goToLogin('motorista')">Login Motorista</ion-button>
+  <ion-button expand="block" color="tertiary" (click)="goToLogin('admin')">Login Gerente</ion-button>
+
+  <ion-button expand="block" fill="clear" (click)="goToCadastro()">Ainda não tem cadastro?</ion-button>
+
+  <!-- Cena da vanzinha com asfalto -->
+<div class="cena-estrada">
+  
+  <!-- Vanzinha -->
+  <div class="vanzinha">
+    <div class="van-img"></div>
+  </div>
+  
+  <!-- Asfaltinho -->
+  <div class="estrada"></div>
+</div>
+</ion-content>

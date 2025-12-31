@@ -1,0 +1,589 @@
+<!-- Menu Lateral -->
+<ion-menu contentId="main-content" type="overlay" class="custom-menu">
+  <ion-header>
+    <ion-toolbar color="primary">
+      <ion-title>Menu do Aluno</ion-title>
+      <ion-buttons slot="end">
+        <ion-button (click)="closeMenu()">
+          <ion-icon name="close" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content class="ion-padding">
+    <!-- Informações do usuário -->
+    <div class="user-info">
+      <ion-avatar class="user-avatar">
+        <ion-icon name="person-circle" color="primary"></ion-icon>
+      </ion-avatar>
+      <div class="user-details">
+        <h3>{{user?.nome}}</h3>
+        <p>{{user?.email}}</p>
+        <ion-badge color="success">Aluno</ion-badge>
+      </div>
+    </div>
+
+    <!-- Menu de navegação -->
+    <ion-list lines="none" class="menu-list">
+      <ion-item
+        button
+        (click)="navigateToSegment('home')"
+        [class.active]="activeSegment === 'home'"
+        detail="false"
+        class="menu-item"
+      >
+        <ion-icon name="home" slot="start" color="primary"></ion-icon>
+        <ion-label>Início</ion-label>
+      </ion-item>
+
+      <ion-item
+        button
+        (click)="navigateToSegment('agendamento')"
+        [class.active]="activeSegment === 'agendamento'"
+        detail="false"
+        class="menu-item"
+      >
+        <ion-icon name="calendar" slot="start" color="success"></ion-icon>
+        <ion-label>Agendar Transporte</ion-label>
+      </ion-item>
+
+      <ion-item
+        button
+        (click)="navigateToSegment('meus-agendamentos')"
+        [class.active]="activeSegment === 'meus-agendamentos'"
+        detail="false"
+        class="menu-item"
+      >
+        <ion-icon name="list" slot="start" color="warning"></ion-icon>
+        <ion-label>Meus Agendamentos</ion-label>
+      </ion-item>
+
+      <ion-item
+        button
+        (click)="navigateToSegment('placa')"
+        [class.active]="activeSegment === 'placa'"
+        detail="false"
+        class="menu-item"
+      >
+        <ion-icon name="bus" slot="start" color="tertiary"></ion-icon>
+        <ion-label>Minha Van</ion-label>
+      </ion-item>
+
+      <ion-item
+        button
+        (click)="navigateToSegment('mural')"
+        [class.active]="activeSegment === 'mural'"
+        detail="false"
+        class="menu-item"
+      >
+        <ion-icon name="notifications" slot="start" color="danger"></ion-icon>
+        <ion-label>Mural de Avisos</ion-label>
+      </ion-item>
+
+      <ion-item
+        button
+        (click)="gerenciarEnderecosFromMenu()"
+        detail="false"
+        class="menu-item"
+      >
+        <ion-icon name="location" slot="start" color="secondary"></ion-icon>
+        <ion-label>Meus Endereços</ion-label>
+      </ion-item>
+
+      <!-- Divisor -->
+      <div class="menu-divider"></div>
+
+      <!-- Ações do usuário -->
+      <ion-item
+        button
+        (click)="logout()"
+        detail="false"
+        class="menu-item logout-item"
+      >
+        <ion-icon name="log-out-outline" slot="start" color="medium"></ion-icon>
+        <ion-label>Sair</ion-label>
+      </ion-item>
+    </ion-list>
+  </ion-content>
+</ion-menu>
+
+<!-- Conteúdo Principal -->
+<div class="ion-page" id="main-content">
+  <ion-header [translucent]="true">
+    <ion-toolbar color="primary">
+      <ion-buttons slot="start">
+        <ion-menu-button></ion-menu-button>
+      </ion-buttons>
+      <ion-title>
+        <span *ngIf="activeSegment === 'home'">Área do Aluno</span>
+        <span *ngIf="activeSegment === 'agendamento'">Agendar Transporte</span>
+        <span *ngIf="activeSegment === 'meus-agendamentos'"
+          >Meus Agendamentos</span
+        >
+        <span *ngIf="activeSegment === 'placa'">Minha Van</span>
+        <span *ngIf="activeSegment === 'mural'">Mural de Avisos</span>
+      </ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content [fullscreen]="true" class="ion-padding">
+    <!-- Header com boas-vindas (apenas na home) -->
+    <div class="welcome-section" *ngIf="activeSegment === 'home'">
+      <ion-avatar class="user-avatar">
+        <ion-icon name="person-circle" size="large"></ion-icon>
+      </ion-avatar>
+      <h2>Olá, {{user?.nome}}!</h2>
+      <p>Bem-vindo de volta</p>
+    </div>
+
+    <!-- Cards de acesso rápido (apenas na home) -->
+    <ion-grid class="quick-actions" *ngIf="activeSegment === 'home'">
+      <ion-row>
+        <ion-col size="6">
+          <ion-card
+            class="action-card"
+            (click)="navigateToSegment('agendamento')"
+          >
+            <div
+              class="card-icon"
+              style="background: var(--ion-color-primary-tint)"
+            >
+              <ion-icon name="calendar" color="primary"></ion-icon>
+            </div>
+            <ion-card-header>
+              <ion-card-title>Agendar</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <p>Novo transporte</p>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+
+        <ion-col size="6">
+          <ion-card
+            class="action-card"
+            (click)="navigateToSegment('meus-agendamentos')"
+          >
+            <div
+              class="card-icon"
+              style="background: var(--ion-color-success-tint)"
+            >
+              <ion-icon name="list" color="success"></ion-icon>
+            </div>
+            <ion-card-header>
+              <ion-card-title>Meus Agendamentos</ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <p>Ver meus agendamentos</p>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    <!-- Conteúdo dos segments (SEM O SEGMENT VISÍVEL) -->
+    <div [ngSwitch]="activeSegment" class="segment-content">
+      <!-- Home -->
+      <div *ngSwitchCase="'home'" class="home-content">
+        <!-- Últimos Avisos -->
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="notifications" slot="start"></ion-icon>
+              Últimos Avisos
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-list lines="none">
+              <ion-item
+                *ngFor="let aviso of avisos.slice(0, 3)"
+                class="aviso-item"
+              >
+                <ion-icon
+                  name="information-circle"
+                  slot="start"
+                  color="primary"
+                ></ion-icon>
+                <ion-label class="ion-text-wrap">
+                  <h3>{{aviso.conteudo}}</h3>
+                  <p>{{aviso.dataPostagem | date:'dd/MM/yyyy HH:mm'}}</p>
+                </ion-label>
+              </ion-item>
+              <ion-item *ngIf="avisos.length === 0">
+                <ion-label class="ion-text-center">
+                  <ion-icon
+                    name="notifications-off-outline"
+                    size="large"
+                    color="medium"
+                  ></ion-icon>
+                  <p>Nenhum aviso no momento</p>
+                </ion-label>
+              </ion-item>
+            </ion-list>
+          </ion-card-content>
+        </ion-card>
+
+        <!-- Agendamentos do Dia -->
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="today" slot="start"></ion-icon>
+              Hoje
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-list lines="none">
+              <ion-item
+                *ngFor="let agendamento of agendamentosHoje"
+                class="agendamento-hoje"
+              >
+                <ion-icon name="time" slot="start" color="success"></ion-icon>
+                <ion-label>
+                  <h3>{{ formatarHorario(agendamento.idHorario) }}</h3>
+                  <p>{{ getNomeEndereco(agendamento.idEndereco) }}</p>
+                </ion-label>
+                <ion-badge color="success" slot="end">Hoje</ion-badge>
+              </ion-item>
+              <ion-item *ngIf="agendamentosHoje.length === 0">
+                <ion-label class="ion-text-center">
+                  <p>Nenhum agendamento para hoje</p>
+                </ion-label>
+              </ion-item>
+            </ion-list>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <!-- Agendamento -->
+      <div *ngSwitchCase="'agendamento'" class="agendamento-content">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Novo Agendamento</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <!-- DEBUG: Informações de carregamento -->
+            <div
+              *ngIf="carregandoEnderecos"
+              class="ion-text-center ion-padding"
+            >
+              <ion-spinner></ion-spinner>
+              <p>Carregando endereços...</p>
+            </div>
+
+            <div
+              *ngIf="!carregandoEnderecos && enderecos.length === 0"
+              class="ion-text-center ion-padding"
+              style="color: var(--ion-color-medium)"
+            >
+              <ion-icon name="location-outline" size="large"></ion-icon>
+              <h3>Nenhum endereço cadastrado</h3>
+              <p>Cadastre um endereço para poder agendar</p>
+            </div>
+
+            <form
+              [formGroup]="agendamentoForm"
+              (ngSubmit)="agendarTransporte()"
+              *ngIf="enderecos.length > 0"
+            >
+              <ion-item fill="outline" class="ion-margin-bottom">
+                <ion-label position="stacked">Data do Transporte</ion-label>
+                <ion-input
+                  type="date"
+                  formControlName="data"
+                  [min]="getDataMinima()"
+                  placeholder="Selecione a data"
+                ></ion-input>
+              </ion-item>
+
+              <ion-item fill="outline" class="ion-margin-bottom">
+                <ion-label position="stacked">Endereço de Destino</ion-label>
+                <ion-select
+                  formControlName="endereco"
+                  interface="action-sheet"
+                  placeholder="Selecione um endereço"
+                >
+                  <ion-select-option
+                    *ngFor="let endereco of enderecos"
+                    [value]="endereco.id"
+                  >
+                    {{ endereco.nome }} - {{ endereco.descricao }}
+                  </ion-select-option>
+                </ion-select>
+              </ion-item>
+
+              <ion-item fill="outline" class="ion-margin-bottom">
+                <ion-label position="stacked">Horário</ion-label>
+                <ion-select
+                  formControlName="horario"
+                  interface="action-sheet"
+                  placeholder="Selecione um horário"
+                >
+                  <ion-select-option
+                    *ngFor="let horario of horarios"
+                    [value]="horario.id"
+                  >
+                    {{ horario.horario?.substring(0, 5) }}
+                  </ion-select-option>
+                </ion-select>
+              </ion-item>
+
+              <ion-button
+                type="submit"
+                expand="block"
+                [disabled]="!agendamentoForm.valid"
+                class="ion-margin-top"
+                size="large"
+              >
+                <ion-icon name="checkmark" slot="start"></ion-icon>
+                Confirmar Agendamento
+              </ion-button>
+            </form>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-button
+          expand="block"
+          fill="outline"
+          (click)="gerenciarEnderecos()"
+          class="ion-margin-top"
+        >
+          <ion-icon name="location" slot="start"></ion-icon>
+          Gerenciar Endereços
+        </ion-button>
+      </div>
+
+      <!-- Meus Agendamentos -->
+      <div *ngSwitchCase="'meus-agendamentos'">
+        <ion-list>
+          <ion-item-sliding *ngFor="let agendamento of agendamentos">
+            <ion-item
+              [color]="isAgendamentoFuturo(agendamento) ? undefined : 'light'"
+            >
+              <ion-icon
+                [name]="isAgendamentoFuturo(agendamento) ? 'time' : 'checkmark-circle'"
+                [color]="isAgendamentoFuturo(agendamento) ? 'warning' : 'success'"
+                slot="start"
+              >
+              </ion-icon>
+              <ion-label>
+                <h2>
+                  {{ formatarData(agendamento.dataAgendada) }} - {{
+                  formatarHorario(agendamento.idHorario) }}
+                </h2>
+                <p>{{ getNomeEndereco(agendamento.idEndereco) }}</p>
+                <ion-badge
+                  [color]="isAgendamentoFuturo(agendamento) ? 'primary' : 'medium'"
+                >
+                  {{ isAgendamentoFuturo(agendamento) ? 'Futuro' : 'Concluído'
+                  }}
+                </ion-badge>
+              </ion-label>
+            </ion-item>
+
+            <ion-item-options
+              side="end"
+              *ngIf="isAgendamentoFuturo(agendamento)"
+            >
+              <ion-item-option
+                color="danger"
+                (click)="cancelarAgendamento(agendamento)"
+              >
+                <ion-icon name="trash" slot="icon-only"></ion-icon>
+              </ion-item-option>
+            </ion-item-options>
+          </ion-item-sliding>
+
+          <ion-item *ngIf="agendamentos.length === 0" class="empty-state">
+            <ion-label class="ion-text-center">
+              <ion-icon
+                name="calendar-outline"
+                size="large"
+                color="medium"
+              ></ion-icon>
+              <h3>Nenhum agendamento</h3>
+              <p>Clique em "Agendar" para criar seu primeiro agendamento</p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </div>
+
+      <!-- Minha Van -->
+      <div *ngSwitchCase="'placa'">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="bus" slot="start"></ion-icon>
+              Minha Van
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="van-info">
+              <div class="info-item">
+                <ion-icon name="car-sport" color="primary"></ion-icon>
+                <div>
+                  <label>Placa</label>
+                  <p class="value">{{vanInfo.placa || 'Não atribuída'}}</p>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <ion-icon name="person" color="primary"></ion-icon>
+                <div>
+                  <label>Motorista</label>
+                  <p class="value">{{vanInfo.motorista || 'Não atribuído'}}</p>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <ion-icon name="shield-checkmark" color="success"></ion-icon>
+                <div>
+                  <label>Status</label>
+                  <p class="value">
+                    <ion-text color="success">Ativo</ion-text>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <!-- Mural -->
+      <div *ngSwitchCase="'mural'">
+        <ion-list>
+          <ion-item *ngFor="let aviso of avisos" class="aviso-completo">
+            <ion-icon name="megaphone" slot="start" color="primary"></ion-icon>
+            <ion-label class="ion-text-wrap">
+              <h2>{{aviso.titulo || 'Aviso'}}</h2>
+              <p>{{aviso.conteudo}}</p>
+              <p class="data-aviso">
+                {{aviso.dataPostagem | date:'dd/MM/yyyy HH:mm'}}
+              </p>
+            </ion-label>
+          </ion-item>
+
+          <ion-item *ngIf="avisos.length === 0" class="empty-state">
+            <ion-label class="ion-text-center">
+              <ion-icon
+                name="notifications-off-outline"
+                size="large"
+                color="medium"
+              ></ion-icon>
+              <h3>Nenhum aviso</h3>
+              <p>Novos avisos aparecerão aqui</p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </div>
+      <!-- Meus Endereços -->
+      <div *ngSwitchCase="'meus-enderecos'">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="location" slot="start"></ion-icon>
+              Meus Endereços
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <!-- Botão de adicionar -->
+            <ion-button
+              expand="block"
+              (click)="adicionarEndereco()"
+              class="ion-margin-bottom"
+              size="large"
+            >
+              <ion-icon name="add" slot="start"></ion-icon>
+              Adicionar Novo Endereço
+            </ion-button>
+
+            <!-- Lista de endereços com expansão -->
+            <ion-list>
+              <ion-item
+                *ngFor="let endereco of enderecos; let i = index"
+                class="endereco-item"
+                (click)="toggleEndereco(i)"
+                [class.expanded]="enderecoExpandido === i"
+              >
+                <ion-icon
+                  [name]="enderecoExpandido === i ? 'chevron-down' : 'chevron-forward'"
+                  slot="start"
+                  color="medium"
+                >
+                </ion-icon>
+
+                <ion-label class="ion-text-wrap">
+                  <h2>
+                    <ion-icon
+                      name="location"
+                      color="primary"
+                      style="margin-right: 8px"
+                    ></ion-icon>
+                    {{endereco.nome}}
+                  </h2>
+                  <p>{{endereco.descricao}}</p>
+
+                  <!-- Conteúdo expandido -->
+                  <div
+                    *ngIf="enderecoExpandido === i"
+                    class="endereco-expandido"
+                  >
+                    <div class="detalhes-endereco">
+                      <p><strong>Descrição:</strong> {{endereco.descricao}}</p>
+                      <p>
+                        <strong>Coordenadas:</strong>
+                        {{formatarCoordenadasEndereco(endereco.latitude,
+                        endereco.longitude)}}
+                      </p>
+                      <p><strong>Latitude:</strong> {{endereco.latitude}}</p>
+                      <p><strong>Longitude:</strong> {{endereco.longitude}}</p>
+                    </div>
+
+                    <!-- Botões de ação -->
+                    <div class="botoes-acao">
+                      <ion-button
+                        expand="block"
+                        color="primary"
+                        (click)="editarEndereco(endereco); $event.stopPropagation()"
+                        class="ion-margin-top"
+                      >
+                        <ion-icon name="create" slot="start"></ion-icon>
+                        Editar Endereço
+                      </ion-button>
+
+                      <ion-button
+                        expand="block"
+                        color="danger"
+                        fill="outline"
+                        (click)="excluirEndereco(endereco); $event.stopPropagation()"
+                        class="ion-margin-top"
+                      >
+                        <ion-icon name="trash" slot="start"></ion-icon>
+                        Excluir Endereço
+                      </ion-button>
+                    </div>
+                  </div>
+                </ion-label>
+              </ion-item>
+
+              <!-- Estado vazio -->
+              <ion-item *ngIf="enderecos.length === 0" class="empty-state">
+                <ion-label class="ion-text-center">
+                  <ion-icon
+                    name="location-outline"
+                    size="large"
+                    color="medium"
+                  ></ion-icon>
+                  <h3>Nenhum endereço cadastrado</h3>
+                  <p>
+                    Clique no botão acima para adicionar seu primeiro endereço
+                  </p>
+                </ion-label>
+              </ion-item>
+            </ion-list>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
+  </ion-content>
+</div>

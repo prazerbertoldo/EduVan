@@ -1,0 +1,143 @@
+.login-content {
+  --background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary) 100%);
+  
+  .login-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  .logo-section {
+    text-align: center;
+    margin-bottom: 40px;
+
+    .logo {
+      width: 120px;
+      height: 120px;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .app-title {
+      color: white;
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin: 20px 0 5px 0;
+    }
+
+    .app-subtitle {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 1.1rem;
+      margin: 0;
+    }
+  }
+
+  .form-section {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+
+    .form-item {
+      --background: transparent;
+      --border-color: var(--ion-color-light-shade);
+      margin-bottom: 20px;
+
+      ion-label {
+        color: var(--ion-color-dark);
+        font-weight: 500;
+      }
+
+      ion-input {
+        --padding-start: 0;
+      }
+    }
+
+    .password-toggle {
+      --color: var(--ion-color-medium);
+    }
+
+    .login-button {
+      --border-radius: 12px;
+      --box-shadow: 0 4px 15px rgba(var(--ion-color-primary-rgb), 0.3);
+      margin-top: 10px;
+      height: 50px;
+      font-weight: 600;
+    }
+
+    .links-section {
+      margin-top: 30px;
+      text-align: center;
+
+      .back-button {
+        --color: var(--ion-color-medium);
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+      }
+
+      .login-info {
+        color: var(--ion-color-medium);
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        margin: 0;
+
+        ion-icon {
+          font-size: 1rem;
+        }
+      }
+    }
+  }
+}
+
+// Modo escuro
+@media (prefers-color-scheme: dark) {
+  .login-content {
+    .form-section {
+      background: var(--ion-color-dark);
+      
+      .form-item {
+        --border-color: var(--ion-color-medium-shade);
+        
+        ion-label {
+          color: var(--ion-color-light);
+        }
+      }
+
+      .login-info {
+        color: var(--ion-color-medium);
+      }
+    }
+  }
+}
+
+// Responsividade
+@media (max-width: 480px) {
+  .login-content {
+    .login-container {
+      padding: 15px;
+    }
+
+    .form-section {
+      padding: 20px;
+    }
+
+    .logo-section {
+      .logo {
+        width: 100px;
+        height: 100px;
+      }
+
+      .app-title {
+        font-size: 2rem;
+      }
+    }
+  }
+}

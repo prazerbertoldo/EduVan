@@ -1,0 +1,78 @@
+<ion-content class="login-content">
+  <div class="login-container">
+    <!-- Logo -->
+    <div class="logo-section">
+      <img [src]="getLogoPath()" alt="EduVan Logo" class="logo">
+      <h1 class="app-title">EduVan</h1>
+      <p class="app-subtitle">Área do Motorista</p>
+    </div>
+
+    <!-- Formulário de Login -->
+    <div class="form-section">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <!-- Email -->
+        <ion-item class="form-item">
+          <ion-label position="stacked">Email</ion-label>
+          <ion-input
+            formControlName="email"
+            type="email"
+            placeholder="seu@email.com"
+            required
+          ></ion-input>
+        </ion-item>
+        
+        <!-- Senha -->
+        <ion-item class="form-item">
+          <ion-label position="stacked">Senha</ion-label>
+          <ion-input
+            formControlName="password"
+            [type]="showPassword ? 'text' : 'password'"
+            placeholder="Sua senha"
+            required
+          ></ion-input>
+          <ion-button
+            fill="clear"
+            slot="end"
+            (click)="togglePasswordVisibility()"
+            class="password-toggle"
+          >
+            <ion-icon 
+              [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"
+              slot="icon-only"
+            ></ion-icon>
+          </ion-button>
+        </ion-item>
+
+        <!-- Botão de Login -->
+        <ion-button
+          expand="block"
+          type="submit"
+          [disabled]="!loginForm.valid || isLoading"
+          class="login-button"
+        >
+          <ion-spinner *ngIf="isLoading" slot="start"></ion-spinner>
+          <ion-icon name="log-in-outline" slot="start" *ngIf="!isLoading"></ion-icon>
+          {{ isLoading ? 'Entrando...' : 'Entrar como Motorista' }}
+        </ion-button>
+      </form>
+
+      <!-- Links Adicionais -->
+      <div class="links-section">
+        <ion-button
+          fill="clear"
+          expand="block"
+          (click)="voltarParaInicio()"
+          class="back-button"
+        >
+          <ion-icon name="arrow-back" slot="start"></ion-icon>
+          Voltar para Início
+        </ion-button>
+
+        <p class="login-info">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          Acesso restrito para motoristas autorizados
+        </p>
+      </div>
+    </div>
+  </div>
+</ion-content>

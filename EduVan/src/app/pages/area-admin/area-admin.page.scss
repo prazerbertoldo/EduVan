@@ -1,0 +1,523 @@
+/* area-motorista.page.scss */
+:root {
+  --sidebar-width: 280px;
+  --header-height: 56px;
+  --mobile-padding: 16px;
+  --border-radius: 12px;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --transition: all 0.3s ease;
+}
+
+/* Estilo base inspirado no login do motorista */
+.mobile-container {
+  min-height: 100vh;
+  position: relative;
+  background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary) 100%);
+}
+
+.mobile-title {
+  font-size: 1rem;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 200px;
+  color: white;
+  font-weight: 600;
+}
+
+/* Header estilizado */
+ion-toolbar[color="primary"] {
+  --background: transparent;
+  --border-width: 0;
+  --color: white;
+  
+  ion-button {
+    --color: white;
+  }
+}
+
+/* Sidebar Mobile */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  backdrop-filter: blur(2px);
+}
+
+.mobile-sidebar {
+  position: fixed;
+  top: 0;
+  left: -100%;
+  width: 85%;
+  max-width: 300px;
+  height: 100vh;
+  background: white;
+  z-index: 1000;
+  transition: var(--transition);
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+}
+
+.mobile-sidebar.sidebar-open {
+  left: 0;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--ion-color-light);
+  background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary) 100%);
+  color: white;
+}
+
+.sidebar-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.close-sidebar {
+  color: white !important;
+  font-size: 1.5rem;
+}
+
+.sidebar-list {
+  padding: 8px 0;
+  background: white;
+}
+
+.sidebar-item {
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --min-height: 56px;
+  margin: 4px 8px;
+  border-radius: 8px;
+  --background: transparent;
+  --color: var(--ion-color-dark);
+  
+  ion-icon {
+    color: var(--ion-color-primary);
+  }
+}
+
+.sidebar-item.active {
+  background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary) 100%);
+  color: white;
+  
+  ion-icon {
+    color: white;
+  }
+}
+
+/* Conteúdo Principal Mobile */
+.mobile-main-content {
+  padding: var(--mobile-padding);
+  min-height: calc(100vh - var(--header-height));
+}
+
+.mobile-area {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Área de conteúdo com estilo do login */
+.area-content {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  
+  h2 {
+    color: var(--ion-color-primary);
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    ion-icon {
+      color: var(--ion-color-secondary);
+    }
+  }
+}
+
+/* Grid de Estatísticas Mobile - Estilo melhorado */
+.mobile-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.mobile-stat-card {
+  margin: 0;
+  height: 100px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.mobile-stat-card .stat-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  position: relative;
+}
+
+.mobile-stat-card .stat-number {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: var(--ion-color-primary);
+  margin-bottom: 4px;
+}
+
+.mobile-stat-card .stat-label {
+  font-size: 0.8rem;
+  color: var(--ion-color-medium);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.mobile-stat-card .stat-icon {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  font-size: 1.2rem;
+  color: var(--ion-color-primary);
+  opacity: 0.3;
+}
+
+/* Grid de Ações Mobile - Estilo de cards do login */
+.mobile-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.mobile-action-card {
+  margin: 0;
+  text-align: center;
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: var(--transition);
+  
+  &:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.mobile-action-card ion-card-header {
+  padding: 16px 16px 8px;
+}
+
+.mobile-action-card ion-card-title {
+  font-size: 1rem;
+  margin-top: 8px;
+  color: var(--ion-color-primary);
+  font-weight: 600;
+}
+
+.mobile-action-card ion-card-content {
+  padding: 0 16px 16px;
+  font-size: 0.9rem;
+  color: var(--ion-color-medium);
+}
+
+.mobile-action-card ion-icon {
+  color: var(--ion-color-secondary);
+  font-size: 2rem;
+}
+
+/* Ajustes para elementos comuns */
+ion-segment {
+  --background: var(--ion-color-light);
+  border-radius: var(--border-radius);
+}
+
+ion-segment-button {
+  --padding-start: 8px;
+  --padding-end: 8px;
+  min-height: 40px;
+  --color: var(--ion-color-medium);
+  --color-checked: var(--ion-color-primary);
+}
+
+ion-card {
+  margin: 12px 0;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  background: white;
+}
+
+ion-item {
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --inner-padding-end: 16px;
+  --border-radius: 8px;
+}
+
+ion-button {
+  --border-radius: 12px;
+  --box-shadow: 0 4px 15px rgba(var(--ion-color-primary-rgb), 0.2);
+  font-weight: 600;
+  
+  &[color="primary"] {
+    --background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary) 100%);
+  }
+}
+
+/* Listas e itens */
+ion-list {
+  background: transparent;
+}
+
+ion-item-sliding {
+  margin-bottom: 8px;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+/* Formulários */
+ion-input, ion-select, ion-textarea {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --border-radius: 8px;
+  --background: var(--ion-color-light);
+}
+
+/* Badges estilizados */
+ion-badge {
+  font-size: 0.7rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+/* Estados de loading */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  
+  ion-spinner {
+    color: var(--ion-color-primary);
+  }
+  
+  p {
+    color: var(--ion-color-medium);
+    margin-top: 10px;
+  }
+}
+
+/* Estados vazios */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--ion-color-medium);
+  
+  ion-icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    color: var(--ion-color-light);
+  }
+}
+
+/* Grupos de proximidade - Estilo melhorado */
+.grupo-card {
+  border-left: 4px solid var(--ion-color-primary);
+  
+  &.grupo-selecionado {
+    border-left-color: var(--ion-color-success);
+    background: rgba(var(--ion-color-success-rgb), 0.05);
+  }
+  
+  &.grupo-parcial {
+    border-left-color: var(--ion-color-warning);
+    background: rgba(var(--ion-color-warning-rgb), 0.05);
+  }
+}
+
+.grupo-header {
+  cursor: pointer;
+  
+  ion-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+}
+
+/* Alunos em grupos */
+.aluno-no-grupo {
+  --padding-start: 8px;
+  --padding-end: 8px;
+  --inner-padding-end: 8px;
+  margin: 4px 0;
+  border-radius: 6px;
+  
+  &.aluno-selecionado {
+    background: rgba(var(--ion-color-success-rgb), 0.1);
+    border-left: 3px solid var(--ion-color-success);
+  }
+  
+  &.aluno-indisponivel {
+    background: rgba(var(--ion-color-danger-rgb), 0.1);
+    opacity: 0.6;
+  }
+}
+
+/* Range personalizado */
+ion-range {
+  --bar-background: var(--ion-color-light);
+  --bar-background-active: var(--ion-color-primary);
+  --knob-background: var(--ion-color-primary);
+  --pin-background: var(--ion-color-primary);
+  --pin-color: white;
+}
+
+/* Media Queries para tablets */
+@media (min-width: 768px) {
+  .mobile-container {
+    display: flex;
+    background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-secondary) 100%);
+  }
+
+  .mobile-sidebar {
+    position: static;
+    width: var(--sidebar-width);
+    height: auto;
+    transform: none;
+    box-shadow: none;
+    border-right: 1px solid var(--ion-color-light);
+    border-radius: 0;
+  }
+
+  .sidebar-overlay {
+    display: none;
+  }
+
+  .mobile-main-content {
+    flex: 1;
+    padding: 20px;
+    background: transparent;
+  }
+
+  .mobile-stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .mobile-actions-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .mobile-title {
+    max-width: none;
+  }
+  
+  .area-content {
+    padding: 30px;
+  }
+}
+
+/* Media Queries para desktop */
+@media (min-width: 1024px) {
+  .mobile-main-content {
+    padding: 24px 32px;
+  }
+
+  .mobile-stats-grid {
+    gap: 20px;
+  }
+
+  .mobile-actions-grid {
+    gap: 20px;
+  }
+  
+  .area-content {
+    padding: 40px;
+  }
+}
+
+/* Utilitários para mobile */
+.mobile-only {
+  display: block;
+}
+
+.tablet-up {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .mobile-only {
+    display: none;
+  }
+  
+  .tablet-up {
+    display: block;
+  }
+}
+
+/* Melhorias de acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Suporte a dark mode */
+@media (prefers-color-scheme: dark) {
+  .mobile-sidebar {
+    background: var(--ion-color-dark);
+  }
+  
+  .mobile-stat-card {
+    background: linear-gradient(135deg, var(--ion-color-dark-tint) 0%, var(--ion-color-dark-shade) 100%);
+  }
+  
+  .area-content {
+    background: var(--ion-color-dark);
+    
+    h2 {
+      color: var(--ion-color-light);
+    }
+  }
+  
+  .mobile-action-card {
+    background: var(--ion-color-dark-tint);
+    
+    ion-card-title {
+      color: var(--ion-color-light);
+    }
+  }
+  
+  ion-card {
+    background: var(--ion-color-dark-tint);
+  }
+}

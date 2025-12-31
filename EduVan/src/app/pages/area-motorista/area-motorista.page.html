@@ -1,0 +1,293 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="toggleSidebar()">
+        <ion-icon name="menu"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="mobile-title">Motorista - {{user?.nome}}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="logout()">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Sidebar Mobile Overlay -->
+  <div class="sidebar-overlay" *ngIf="sidebarOpen" (click)="sidebarOpen = false"></div>
+
+  <!-- Container Principal Mobile -->
+  <div class="mobile-container">
+
+    <!-- Sidebar Mobile -->
+    <div class="mobile-sidebar" [class.sidebar-open]="sidebarOpen">
+      <div class="sidebar-header">
+        <h3>Menu Motorista</h3>
+        <ion-button fill="clear" (click)="sidebarOpen = false" class="close-sidebar">
+          <ion-icon name="close"></ion-icon>
+        </ion-button>
+      </div>
+
+      <ion-list lines="none" class="sidebar-list">
+        <ion-item button (click)="toggleArea('home'); sidebarOpen = false" [class.active]="activeArea === 'home'"
+          class="sidebar-item">
+          <ion-icon name="home" slot="start"></ion-icon>
+          <ion-label>Início</ion-label>
+        </ion-item>
+
+        <ion-item button (click)="toggleArea('alunos'); sidebarOpen = false" [class.active]="activeArea === 'alunos'"
+          class="sidebar-item">
+          <ion-icon name="people" slot="start"></ion-icon>
+          <ion-label>Alunos</ion-label>
+        </ion-item>
+
+        <ion-item button (click)="toggleArea('rotas'); sidebarOpen = false" [class.active]="activeArea === 'rotas'"
+          class="sidebar-item">
+          <ion-icon name="map" slot="start"></ion-icon>
+          <ion-label>Minhas Rotas</ion-label>
+        </ion-item>
+      </ion-list>
+    </div>
+
+    <!-- Conteúdo Principal Mobile -->
+    <div class="mobile-main-content">
+
+      <!-- Área: Home/Início -->
+      <!-- Na seção que mostra as estatísticas iniciais -->
+      <div *ngIf="activeArea === 'home'" class="home-content">
+
+        <div class="welcome-section">
+          <h2>Bem-vindo, {{ user?.nome || 'Motorista' }}!</h2>
+          <p>Hoje é {{ dataHoje | date:'dd/MM/yyyy' }}</p>
+        </div>
+
+        <!-- NOVO: Seção da Van -->
+        <div class="van-info-card">
+          <h3>🚐 Van Atribuída</h3>
+          <div class="van-details">
+            <div class="van-placa">
+              <strong>Placa:</strong>
+              <span class="placa-badge">{{ placaVan }}</span>
+            </div>
+            <div *ngIf="minhaVan" class="van-modelo">
+              <strong>Modelo:</strong> {{ minhaVan.modelo || 'Não informado' }}
+            </div>
+            <div *ngIf="minhaVan" class="van-capacidade">
+              <strong>Capacidade:</strong> {{ minhaVan.capacidade || 'Não informada' }} passageiros
+            </div>
+          </div>
+        </div>
+
+        <!-- NOVO: Seção de Rotas do Dia -->
+        <div class="rotas-info-card">
+          <h3>📅 Rotas de Hoje</h3>
+          <div class="rotas-stats">
+            <div class="total-rotas">
+              <strong>Total de Rotas:</strong> {{ minhasRotasHojeLista.length }}
+            </div>
+            <div class="horarios-cobertos">
+              <strong>Horários Cobertos:</strong> {{ getStatusRotas() }}
+            </div>
+
+            <!-- Detalhamento por horário -->
+            <div *ngIf="horariosDisponiveis.length > 0" class="horarios-detalhados">
+              <h4>Distribuição por Horário:</h4>
+              <div class="horario-list">
+                <div *ngFor="let horario of horariosDisponiveis" class="horario-item">
+                  <span class="horario-time">{{ horario.horaInicio }} - {{ horario.horaFim }}</span>
+                  <span class="rotas-count">
+                    {{ rotasByHorarioCount.get(horario.id) || 0 }} rotas
+                  </span>
+                  <span *ngIf="rotasByHorarioCount.get(horario.id)" class="status-indicator">
+                    ✅
+                  </span>
+                  <span *ngIf="!rotasByHorarioCount.get(horario.id)" class="status-indicator missing">
+                    ⚠️
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Resumo -->
+            <div class="resumo-rotas">
+              <div *ngIf="minhasRotasHojeLista.length >= horariosDisponiveis.length" class="alert-success">
+                ✅ Você tem rotas para todos os horários disponíveis!
+              </div>
+              <div *ngIf="minhasRotasHojeLista.length < horariosDisponiveis.length" class="alert-warning">
+                ⚠️ Você ainda não tem rotas para todos os horários
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estatísticas existentes -->
+        <div class="stats-cards">
+          <div class="stat-card">
+            <h3>👥 Total de Alunos</h3>
+            <p class="stat-number">{{ totalAlunos }}</p>
+          </div>
+
+          <div class="stat-card">
+            <h3>📍 Rotas Atribuídas</h3>
+            <p class="stat-number">{{ minhasRotasHoje }}</p>
+            <small>para hoje</small>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Área: Alunos -->
+      <div *ngIf="activeArea === 'alunos'" class="area-content mobile-area">
+        <h2><ion-icon name="people"></ion-icon> Lista de Alunos</h2>
+
+        <!-- Loading State -->
+        <div *ngIf="isLoadingAlunos" class="ion-text-center ion-padding">
+          <ion-spinner></ion-spinner>
+          <p>Carregando alunos...</p>
+        </div>
+
+        <!-- Lista de Alunos -->
+        <div *ngIf="!isLoadingAlunos">
+          <ion-list>
+            <ion-item *ngFor="let aluno of alunos; trackBy: trackByFn">
+              <ion-label>
+                <h3>{{ aluno.nome }}</h3>
+                <p>Email: {{ aluno.email }}</p>
+                <p>Telefone: {{ aluno.telefone }}</p>
+                <p *ngIf="aluno.endereco">Endereço: {{ aluno.endereco }}</p>
+              </ion-label>
+            </ion-item>
+
+            <ion-item *ngIf="alunos.length === 0">
+              <ion-label class="ion-text-center">
+                <ion-icon name="people-outline" size="large"></ion-icon>
+                <h3>Nenhum aluno cadastrado</h3>
+              </ion-label>
+            </ion-item>
+          </ion-list>
+        </div>
+      </div>
+
+      <!-- Área: Minhas Rotas -->
+      <div *ngIf="activeArea === 'rotas'" class="area-content mobile-area">
+        <h2><ion-icon name="map"></ion-icon> Minhas Rotas de Hoje</h2>
+
+        <!-- Loading State -->
+        <div *ngIf="isLoadingRotas" class="ion-text-center ion-padding">
+          <ion-spinner></ion-spinner>
+          <p>Carregando rotas...</p>
+        </div>
+
+        <!-- Lista de Rotas -->
+        <div *ngIf="!isLoadingRotas">
+          <ion-list>
+            <ion-item *ngFor="let rota of minhasRotasHojeLista; trackBy: trackByFn">
+              <ion-label>
+                <h3>Rota #{{ rota.id }}</h3>
+                <p>Horário: {{ rota.horario || 'Não definido' }}</p>
+                <p>Van: {{ rota.placaVan || minhaVan?.placa }}</p>
+                <p>Alunos: {{ rota.quantidadeAlunos || 0 }}</p>
+              </ion-label>
+              <ion-button slot="end" fill="outline" size="small" (click)="visualizarRotaNoMapa(rota)">
+                <ion-icon name="map-outline" slot="start"></ion-icon>
+                Ver Mapa
+              </ion-button>
+            </ion-item>
+
+            <ion-item *ngIf="minhasRotasHojeLista.length === 0">
+              <ion-label class="ion-text-center">
+                <ion-icon name="map-outline" size="large"></ion-icon>
+                <h3>Nenhuma rota para hoje</h3>
+                <p>Você não tem rotas atribuídas para hoje</p>
+              </ion-label>
+            </ion-item>
+          </ion-list>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ... restante do código ... -->
+  <!-- Modal do Mapa -->
+  <div class="mapa-modal" *ngIf="mapaVisivel">
+    <div class="mapa-header">
+      <h2>Mapa da Rota #{{rotaSelecionadaMapa?.id}}</h2>
+      <ion-button fill="clear" (click)="fecharMapa()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </div>
+
+    <!-- Informações da Rota -->
+    <div class="rota-info-card" *ngIf="detalhesRota">
+      <div class="rota-detalhes">
+        <div class="rota-info-item">
+          <strong>Horário:</strong> {{ infoHorario }}
+        </div>
+        <div class="rota-info-item">
+          <strong>Van:</strong> {{ infoVan }}
+        </div>
+        <div class="rota-info-item">
+          <strong>Data:</strong> {{ detalhesRota.data }}
+        </div>
+        <div class="rota-info-item">
+          <strong>Total de paradas:</strong> {{ agendamentosDaRota.length }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Mensagem quando não há agendamentos -->
+    <div *ngIf="agendamentosDaRota.length === 0" class="sem-agendamentos">
+      <ion-icon name="information-circle" size="large"></ion-icon>
+      <h3>Nenhum agendamento encontrado</h3>
+      <p>Esta rota não possui agendamentos associados.</p>
+    </div>
+
+    <!-- Lista de Paradas -->
+    <div class="paradas-list" *ngIf="agendamentosDaRota.length > 0">
+      <h3>Paradas da Rota ({{ agendamentosDaRota.length }})</h3>
+      <div class="paradas-container">
+        <div *ngFor="let agendamento of agendamentosDaRota; let i = index" class="parada-item">
+          <div class="parada-ordem">{{ i + 1 }}</div>
+          <div class="parada-info">
+            <strong>{{ agendamento.aluno?.nome || 'Aluno' }}</strong>
+            <div class="parada-detalhes" *ngIf="agendamento.endereco">
+              <small *ngIf="agendamento.endereco.nome">
+                <ion-icon name="location"></ion-icon>
+                {{ agendamento.endereco.nome }}
+              </small>
+              <small *ngIf="agendamento.endereco.descricao">
+                <ion-icon name="information-circle"></ion-icon>
+                {{ agendamento.endereco.descricao }}
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Container do Mapa -->
+    <div id="map-container" class="map-container" *ngIf="agendamentosDaRota.length > 0"></div>
+
+    <!-- Mensagem quando não há mapa para mostrar -->
+    <div *ngIf="agendamentosDaRota.length === 0" class="sem-mapa">
+      <ion-icon name="map-outline" size="large"></ion-icon>
+      <p>Não há pontos de parada para exibir no mapa</p>
+    </div>
+
+    <!-- Legenda -->
+    <div class="mapa-legenda" *ngIf="agendamentosDaRota.length > 0">
+      <div class="legenda-item">
+        <div class="legenda-color" style="background-color: #4285F4;"></div>
+        <span>Ponto de parada</span>
+      </div>
+      <div class="legenda-item">
+        <div class="legenda-color" style="background-color: #FF5722; border: 2px dashed #FF5722;"></div>
+        <span>Trajeto da rota</span>
+      </div>
+      <div class="legenda-item">
+        <div class="legenda-text">Números indicam ordem das paradas</div>
+      </div>
+    </div>
+  </div>
+</ion-content>

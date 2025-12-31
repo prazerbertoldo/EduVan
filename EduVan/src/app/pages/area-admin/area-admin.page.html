@@ -1,0 +1,1889 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="sidebarOpen = !sidebarOpen">
+        <ion-icon name="menu"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Área do Administrador - {{user?.nome}}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="logout()">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-grid>
+    <ion-row>
+      <!-- Sidebar -->
+      <ion-col size="3" class="sidebar" [class.sidebar-open]="sidebarOpen">
+        <ion-list lines="none">
+          <ion-item button (click)="toggleArea('home')" [class.active]="activeArea === 'home'">
+            <ion-icon name="home" slot="start"></ion-icon>
+            <ion-label>Início</ion-label>
+          </ion-item>
+          <ion-item button (click)="toggleArea('alunos')" [class.active]="activeArea === 'alunos'">
+            <ion-icon name="people" slot="start"></ion-icon>
+            <ion-label>Alunos</ion-label>
+          </ion-item>
+          <ion-item button (click)="toggleArea('presenca')" [class.active]="activeArea === 'presenca'">
+            <ion-icon name="checkmark-circle" slot="start"></ion-icon>
+            <ion-label>Presença</ion-label>
+          </ion-item>
+          <ion-item button (click)="toggleArea('vans')" [class.active]="activeArea === 'vans'">
+            <ion-icon name="bus" slot="start"></ion-icon>
+            <ion-label>Vans</ion-label>
+          </ion-item>
+          <ion-item button (click)="toggleArea('mural')" [class.active]="activeArea === 'mural'">
+            <ion-icon name="megaphone" slot="start"></ion-icon>
+            <ion-label>Mural</ion-label>
+          </ion-item>
+          <ion-item button (click)="toggleArea('admin')" [class.active]="activeArea === 'admin'">
+            <ion-icon name="settings" slot="start"></ion-icon>
+            <ion-label>Administração</ion-label>
+          </ion-item>
+        </ion-list>
+      </ion-col>
+
+      <!-- Conteúdo Principal -->
+      <ion-col size="9">
+        <!-- Home -->
+        <div *ngIf="activeArea === 'home'" class="area-content">
+          <h2>Bem-vindo(a), {{user?.nome}}</h2>
+
+          <!-- Cartões de Estatísticas -->
+          <div class="stats-grid">
+            <ion-card class="stat-card">
+              <ion-card-content>
+                <div class="stat-number">{{ totalAlunos }}</div>
+                <div class="stat-label">Alunos Cadastrados</div>
+                <ion-icon name="people" class="stat-icon"></ion-icon>
+              </ion-card-content>
+            </ion-card>
+
+            <ion-card class="stat-card">
+              <ion-card-content>
+                <div class="stat-number">{{ totalVans }}</div>
+                <div class="stat-label">Vans Cadastradas</div>
+                <ion-icon name="bus" class="stat-icon"></ion-icon>
+              </ion-card-content>
+            </ion-card>
+
+            <ion-card class="stat-card">
+              <ion-card-content>
+                <div class="stat-number">{{ totalMotoristas }}</div>
+                <div class="stat-label">Motoristas</div>
+                <ion-icon name="person" class="stat-icon"></ion-icon>
+              </ion-card-content>
+            </ion-card>
+
+            <ion-card class="stat-card">
+              <ion-card-content>
+                <div class="stat-number">{{ rotasHoje }}</div>
+                <div class="stat-label">Rotas Hoje</div>
+                <ion-icon name="calendar" class="stat-icon"></ion-icon>
+              </ion-card-content>
+            </ion-card>
+          </div>
+
+          <!-- Ações Rápidas -->
+          <ion-grid>
+            <ion-row>
+              <ion-col size="4">
+                <ion-card (click)="toggleArea('alunos')" button>
+                  <ion-card-header>
+                    <ion-icon name="people" size="large"></ion-icon>
+                    <ion-card-title>Alunos</ion-card-title>
+                  </ion-card-header>
+                  <ion-card-content> Ver e gerenciar alunos </ion-card-content>
+                </ion-card>
+              </ion-col>
+              <ion-col size="4">
+                <ion-card (click)="toggleArea('vans')" button>
+                  <ion-card-header>
+                    <ion-icon name="bus" size="large"></ion-icon>
+                    <ion-card-title>Vans</ion-card-title>
+                  </ion-card-header>
+                  <ion-card-content> Gerenciar frota de vans </ion-card-content>
+                </ion-card>
+              </ion-col>
+              <ion-col size="4">
+                <ion-card (click)="toggleArea('presenca')" button>
+                  <ion-card-header>
+                    <ion-icon name="checkmark-circle" size="large"></ion-icon>
+                    <ion-card-title>Presença</ion-card-title>
+                  </ion-card-header>
+                  <ion-card-content> Registrar presenças </ion-card-content>
+                </ion-card>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </div>
+
+        <!-- Área de Alunos -->
+        <div *ngIf="activeArea === 'alunos'" class="area-content">
+          <h2><ion-icon name="people"></ion-icon> Gerenciar Alunos</h2>
+
+          <!-- Loading State -->
+          <div *ngIf="isLoadingAlunos" class="ion-text-center ion-padding">
+            <ion-spinner></ion-spinner>
+            <p>Carregando alunos...</p>
+          </div>
+
+          <!-- Lista de Alunos -->
+          <div *ngIf="!isLoadingAlunos">
+            <ion-list>
+              <ion-item *ngFor="let aluno of alunos" (click)="toggleAlunoExpandido(aluno.id)">
+                <ion-label>
+                  <h3>{{ aluno.nome }}</h3>
+                  <p>Email: {{ aluno.email }}</p>
+                  <p>Telefone: {{ aluno.telefone }}</p>
+
+                  <!-- Detalhes expandidos -->
+                  <div *ngIf="alunosExpandidos.has(aluno.id)" class="detalhes-aluno">
+                    <!-- Endereço -->
+                    <div *ngIf="getEnderecoPrincipal(aluno.id)">
+                      <h4>Endereço Principal:</h4>
+                      <p>{{ getEnderecoPrincipal(aluno.id).nome }}</p>
+                      <p>{{ getEnderecoPrincipal(aluno.id).descricao }}</p>
+                      <p>
+                        Lat: {{ getEnderecoPrincipal(aluno.id).latitude }}, Lng:
+                        {{ getEnderecoPrincipal(aluno.id).longitude }}
+                      </p>
+                    </div>
+
+                    <!-- Agendamento mais recente -->
+                    <div *ngIf="getAgendamentoRecente(aluno.id)">
+                      <h4>Último Agendamento:</h4>
+                      <p>
+                        Data: {{ getAgendamentoRecente(aluno.id).dataAgendada }}
+                      </p>
+                      <p>
+                        Horário: {{
+                        getHorarioAgendamento(getAgendamentoRecente(aluno.id))
+                        }}
+                      </p>
+                    </div>
+
+                    <div *ngIf="!getEnderecoPrincipal(aluno.id) && !getAgendamentoRecente(aluno.id)">
+                      <p>Nenhum endereço ou agendamento encontrado.</p>
+                    </div>
+                  </div>
+                </ion-label>
+                <ion-buttons slot="end">
+                  <ion-button fill="clear" color="primary" (click)="editarAluno(aluno); $event.stopPropagation()">
+                    <ion-icon name="create"></ion-icon>
+                  </ion-button>
+                  <ion-button fill="clear" color="danger" (click)="excluirAluno(aluno); $event.stopPropagation()">
+                    <ion-icon name="trash"></ion-icon>
+                  </ion-button>
+                </ion-buttons>
+              </ion-item>
+
+              <ion-item *ngIf="alunos.length === 0">
+                <ion-label class="ion-text-center">
+                  <ion-icon name="people-outline" size="large"></ion-icon>
+                  <h3>Nenhum aluno cadastrado</h3>
+                </ion-label>
+              </ion-item>
+            </ion-list>
+          </div>
+        </div>
+
+        <!-- Área de Presença -->
+        <div *ngIf="activeArea === 'presenca'" class="area-content">
+          <h2>
+            <ion-icon name="checkmark-circle"></ion-icon> Gerenciar Presenças
+          </h2>
+
+          <!-- Menu de Navegação -->
+          <ion-segment [value]="abaPresenca" (ionChange)="mudarAbaPresenca($event)" class="ion-margin-bottom">
+            <ion-segment-button value="registrar">
+              <ion-label>Registrar Presenças</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="lista">
+              <ion-label>Lista de Presenças</ion-label>
+            </ion-segment-button>
+          </ion-segment>
+
+          <!-- Loading State -->
+          <div *ngIf="isLoadingPresenca" class="ion-text-center ion-padding">
+            <ion-spinner></ion-spinner>
+            <p>Carregando dados...</p>
+          </div>
+
+          <div *ngIf="!isLoadingPresenca">
+            <!-- ABA: REGISTRAR PRESENÇAS -->
+            <div *ngIf="abaPresenca === 'registrar'">
+              <!-- Passo 1: Selecionar Data -->
+              <ion-card class="ion-margin-bottom">
+                <ion-card-header>
+                  <ion-card-title>1. Selecione a Data</ion-card-title>
+                </ion-card-header>
+                <ion-card-content>
+                  <ion-item>
+                    <ion-label position="stacked">Data *</ion-label>
+                    <ion-input type="date" [value]="dataSelecionada"
+                      (ionChange)="onDataPresencaChange($event)"></ion-input>
+                  </ion-item>
+                </ion-card-content>
+              </ion-card>
+
+              <!-- Passo 4: Selecionar Motorista -->
+              <ion-card class="ion-margin-bottom">
+                <ion-card-header>
+                  <ion-card-title>2. Selecione o Motorista</ion-card-title>
+                  <ion-card-subtitle>
+                    Quem conduzirá esta rota? (Admin também pode ser motorista)
+                  </ion-card-subtitle>
+                </ion-card-header>
+                <ion-card-content>
+                  <ion-list>
+                    <ion-item>
+                      <ion-label position="stacked">Motorista *</ion-label>
+                      <ion-select [(ngModel)]="atribuicaoSelecionada.idMotorista" placeholder="Selecione o motorista"
+                        interface="action-sheet">
+                        <ion-select-option *ngFor="let motorista of motoristas" [value]="motorista.id">
+                          {{ motorista.nome }}
+                          <span *ngIf="motorista.tipo === 'admin'"> (Admin)</span>
+                          <span *ngIf="motorista.id === user?.id"> - Você</span>
+                        </ion-select-option>
+                      </ion-select>
+                    </ion-item>
+
+                    <!-- Mostrar motorista selecionado -->
+                    <div *ngIf="atribuicaoSelecionada.idMotorista" class="ion-margin-top">
+                      <ion-card color="light">
+                        <ion-card-content>
+                          <p><strong>Motorista selecionado:</strong></p>
+                          <p>{{ getNomeMotorista(atribuicaoSelecionada.idMotorista) }}</p>
+                        </ion-card-content>
+                      </ion-card>
+                    </div>
+                  </ion-list>
+                </ion-card-content>
+              </ion-card>
+
+              <!-- Passo 2: Selecionar Van (aparece depois de selecionar data) -->
+              <ion-card class="ion-margin-bottom" *ngIf="dataSelecionada">
+                <ion-card-header>
+                  <ion-card-title>3. Selecione a Van</ion-card-title>
+                  <ion-card-subtitle>
+                    {{ vans.length }} van(s) disponível(is)
+                    <span *ngIf="vanSelecionada">| Van selecionada: {{ vanSelecionada.placa }}</span>
+                  </ion-card-subtitle>
+                </ion-card-header>
+                <ion-card-content>
+                  <ion-list>
+                    <ion-radio-group [(ngModel)]="vanSelecionadaId" (ionChange)="onVanSelecionadaChange($event)">
+                      <ion-item *ngFor="let van of vans" button detail="false">
+                        <ion-label>
+                          <h3>
+                            <ion-icon name="bus" color="primary"></ion-icon>
+                            {{ van.placa }}
+                          </h3>
+                          <p>
+                            <ion-icon name="people" color="secondary"></ion-icon>
+                            Capacidade: {{ van.capacidade }} passageiros
+                          </p>
+                        </ion-label>
+                        <ion-radio slot="start" [value]="van.id"></ion-radio>
+                      </ion-item>
+                    </ion-radio-group>
+                  </ion-list>
+
+                  <!-- Botão para limpar seleção da van -->
+                  <div *ngIf="vanSelecionadaId" class="ion-margin-top">
+                    <ion-button expand="block" color="medium" fill="outline" size="small" (click)="limparSelecaoVan()">
+                      <ion-icon name="close" slot="start"></ion-icon>
+                      Limpar Seleção da Van
+                    </ion-button>
+                  </div>
+
+                  <div *ngIf="vans.length === 0" class="ion-text-center ion-padding">
+                    <ion-icon name="bus-outline" size="large"></ion-icon>
+                    <h3>Nenhuma van cadastrada</h3>
+                    <p>Cadastre vans primeiro na aba "Vans"</p>
+                  </div>
+                </ion-card-content>
+              </ion-card>
+
+              <!-- Passo 3: Selecionar Horário -->
+              <ion-card class="ion-margin-bottom" *ngIf="vanSelecionada">
+                <ion-card-header>
+                  <ion-card-title>3. Selecione o Horário</ion-card-title>
+                  <ion-card-subtitle>
+                    Van: <strong>{{ vanSelecionada.placa }}</strong> | Data: {{
+                    dataSelecionada | date:'dd/MM/yyyy' }}
+                    <ion-badge color="primary" style="margin-left: 8px">
+                      {{ vanSelecionada.capacidade }} vagas
+                    </ion-badge>
+                    <ion-badge *ngIf="rotasDaVan.length > 0" color="warning" style="margin-left: 8px">
+                      {{ rotasDaVan.length }} rota(s) cadastrada(s)
+                    </ion-badge>
+                  </ion-card-subtitle>
+                </ion-card-header>
+                <ion-card-content>
+                  <ion-list>
+                    <ion-item *ngFor="let horario of horariosDisponiveis" (click)="selecionarHorario(horario)"
+                      [class.selected]="horarioSelecionado?.id === horario.id"
+                      [class.disabled]="!isHorarioDisponivel(horario)"
+                      [class.horario-ocupado]="!isHorarioDisponivel(horario)"
+                      [class.horario-disponivel]="isHorarioDisponivel(horario)" button detail="false">
+                      <ion-label>
+                        <h3>
+                          <ion-icon [name]="isHorarioDisponivel(horario) ? 'time' : 'lock-closed'"
+                            [color]="isHorarioDisponivel(horario) ? 'primary' : 'danger'">
+                          </ion-icon>
+                          {{ horario.horario }}
+                          <ion-badge [color]="isHorarioDisponivel(horario) ? 'success' : 'danger'"
+                            style="margin-left: 8px">
+                            {{ isHorarioDisponivel(horario) ? '✅ Disponível' :
+                            '⛔ Ocupado' }}
+                          </ion-badge>
+                        </h3>
+                        <p>
+                          {{ isHorarioDisponivel(horario) ? 'Clique para buscar
+                          alunos deste horário' : 'Van já possui rota neste
+                          horário' }}
+                        </p>
+                      </ion-label>
+                      <ion-icon *ngIf="horarioSelecionado?.id === horario.id && isHorarioDisponivel(horario)"
+                        name="checkmark-circle" color="success" slot="end"></ion-icon>
+                      <ion-icon *ngIf="!isHorarioDisponivel(horario)" name="warning" color="danger"
+                        slot="end"></ion-icon>
+                    </ion-item>
+                  </ion-list>
+
+                  <!-- Configuração de Agrupamento Inteligente -->
+                  <div *ngIf="horarioSelecionado" class="controles-proximidade">
+                    <ion-card class="ion-margin-bottom">
+                      <ion-card-header>
+                        <ion-card-title>
+                          <ion-icon name="location" color="primary"></ion-icon>
+                          Configuração de Agrupamento
+                        </ion-card-title>
+                        <ion-card-subtitle>
+                          Ajuste o raio de proximidade para otimizar os grupos
+                        </ion-card-subtitle>
+                      </ion-card-header>
+                      <ion-card-content>
+                        <!-- Controle do Raio de Proximidade -->
+                        <ion-item>
+                          <ion-label position="stacked">
+                            Raio de Proximidade: {{ raioProximidade }} km
+                            <ion-note>Distância máxima entre alunos no mesmo
+                              grupo</ion-note>
+                          </ion-label>
+                          <ion-range [(ngModel)]="raioProximidade" min="0.5" max="10" step="0.1" color="primary"
+                            (ionChange)="onRaioProximidadeChange()">
+                            <ion-icon name="locate" slot="start" color="primary"></ion-icon>
+                            <ion-icon name="walk" slot="end" color="primary"></ion-icon>
+                          </ion-range>
+                        </ion-item>
+
+                        <!-- Informações do Raio -->
+                        <div class="info-raio ion-margin-top">
+                          <ion-grid>
+                            <ion-row>
+                              <ion-col size="4" class="ion-text-center">
+                                <div class="info-item">
+                                  <ion-icon name="business" color="primary"></ion-icon>
+                                  <p><strong>Perto</strong></p>
+                                  <small>0.5 - 1 km</small>
+                                </div>
+                              </ion-col>
+                              <ion-col size="4" class="ion-text-center">
+                                <div class="info-item">
+                                  <ion-icon name="car" color="secondary"></ion-icon>
+                                  <p><strong>Médio</strong></p>
+                                  <small>1 - 3 km</small>
+                                </div>
+                              </ion-col>
+                              <ion-col size="4" class="ion-text-center">
+                                <div class="info-item">
+                                  <ion-icon name="navigate" color="tertiary"></ion-icon>
+                                  <p><strong>Longe</strong></p>
+                                  <small>3+ km</small>
+                                </div>
+                              </ion-col>
+                            </ion-row>
+                          </ion-grid>
+                        </div>
+
+                        <!-- Ações -->
+                        <div class="acoes-configuracao ion-margin-top">
+                          <ion-button expand="block" color="primary" (click)="calcularProximidadeAutomatica()"
+                            [disabled]="isCalculandoProximidade">
+                            <ion-icon name="refresh" slot="start"></ion-icon>
+                            Recalcular Grupos
+                          </ion-button>
+
+                          <ion-button expand="block" color="medium" fill="outline" (click)="sugerirRaioOtimizado()"
+                            class="ion-margin-top">
+                            <ion-icon name="bulb" slot="start"></ion-icon>
+                            Sugerir Raio Ideal
+                          </ion-button>
+                        </div>
+                      </ion-card-content>
+                    </ion-card>
+                  </div>
+
+                  <!-- Lista de rotas existentes da van -->
+                  <div *ngIf="rotasDaVan.length > 0" class="ion-margin-top">
+                    <ion-card color="light">
+                      <ion-card-header>
+                        <ion-card-title>Rotas Cadastradas</ion-card-title>
+                        <ion-card-subtitle>Van {{ vanSelecionada.placa }} - {{ dataSelecionada |
+                          date:'dd/MM/yyyy' }}</ion-card-subtitle>
+                      </ion-card-header>
+                      <ion-card-content>
+                        <ion-list>
+                          <ion-item *ngFor="let rota of rotasDaVan">
+                            <ion-label>
+                              <h3>
+                                <ion-icon name="time" color="primary"></ion-icon>
+                                {{ rota.horario }}
+                              </h3>
+                              <p>
+                                Motorista: {{ rota.nomeMotorista || 'Admin' }}
+                              </p>
+                            </ion-label>
+                          </ion-item>
+                        </ion-list>
+                      </ion-card-content>
+                    </ion-card>
+                  </div>
+
+                  <div *ngIf="horariosDisponiveis.length === 0" class="ion-text-center ion-padding">
+                    <ion-icon name="time-outline" size="large"></ion-icon>
+                    <h3>Nenhum horário cadastrado</h3>
+                    <p>Cadastre horários no sistema primeiro</p>
+                  </div>
+                </ion-card-content>
+              </ion-card>
+
+              <!-- ========== SEÇÃO DE SELEÇÃO POR GRUPOS ========== -->
+
+              <!-- Passo 4: Seleção por Grupos de Proximidade -->
+              <ion-card class="ion-margin-bottom" *ngIf="horarioSelecionado">
+                <ion-card-header>
+                  <ion-card-title>5. Seleção por Grupos de Proximidade</ion-card-title>
+                  <ion-card-subtitle>
+                    Data: {{ dataSelecionada | date:'dd/MM/yyyy' }} | Van: {{
+                    vanSelecionada.placa }} | {{ agendamentosDisponiveis.length
+                    }} aluno(s) disponível(eis) | {{
+                    alunosAgrupadosPorProximidade.length }} grupo(s) formado(s)
+                  </ion-card-subtitle>
+                </ion-card-header>
+                <ion-card-content>
+                  <!-- Resumo da seleção -->
+                  <div *ngIf="agendamentosSelecionados.size > 0" class="resumo-selecao ion-margin-bottom">
+                    <ion-card color="success">
+                      <ion-card-content>
+                        <h3>
+                          <ion-icon name="checkmark-done" slot="start"></ion-icon>
+                          Seleção Atual: {{ agendamentosSelecionados.size }}
+                          aluno(s)
+                        </h3>
+                        <p>
+                          Capacidade da van: {{ agendamentosSelecionados.size
+                          }}/{{ vanSelecionada.capacidade }}
+                        </p>
+                        <ion-button size="small" color="light" (click)="limparSelecao()">
+                          <ion-icon name="trash" slot="start"></ion-icon>
+                          Limpar Seleção
+                        </ion-button>
+                      </ion-card-content>
+                    </ion-card>
+                  </div>
+
+                  <!-- Botão para ver lista completa (opcional) -->
+                  <ion-button expand="block" color="medium" fill="outline" size="small" (click)="toggleListaCompleta()"
+                    class="ion-margin-bottom">
+                    <ion-icon name="list" slot="start"></ion-icon>
+                    {{ mostrarListaCompleta ? 'Ocultar' : 'Ver' }} Lista
+                    Completa de Alunos
+                  </ion-button>
+
+                  <!-- Lista completa de alunos (opcional) -->
+                  <div *ngIf="mostrarListaCompleta">
+                    <h4>Lista Completa de Alunos</h4>
+                    <ion-list>
+                      <ion-item *ngFor="let agendamento of agendamentosDisponiveis"
+                        [class.selected]="agendamentosSelecionados.has(agendamento.id)"
+                        [class.aluno-indisponivel]="!isAlunoDisponivel(agendamento.id)" class="aluno-item-lista">
+                        <ion-label>
+                          <h3>
+                            <ion-icon [name]="isAlunoDisponivel(agendamento.id) ? 'person' : 'person-remove'"
+                              [color]="getCorBadgeAluno(agendamento.id)"></ion-icon>
+                            {{ agendamento.nomeAluno }}
+                            <ion-badge [color]="getCorBadgeAluno(agendamento.id)" size="small">
+                              {{ getTextoStatusAluno(agendamento.id) }}
+                            </ion-badge>
+                          </h3>
+                          <p>{{ agendamento.nomeEndereco }}</p>
+                        </ion-label>
+                        <ion-checkbox slot="end" [checked]="agendamentosSelecionados.has(agendamento.id)"
+                          (ionChange)="toggleAgendamentoSelecionado(agendamento.id)"
+                          [disabled]="!isAlunoDisponivel(agendamento.id)"></ion-checkbox>
+                      </ion-item>
+                    </ion-list>
+                  </div>
+                </ion-card-content>
+              </ion-card>
+
+              <!-- Seção de Grupos por Proximidade -->
+              <div *ngIf="alunosAgrupadosPorProximidade.length > 0 && horarioSelecionado"
+                class="grupos-proximidade-section">
+                <!-- Cabeçalho dos Grupos -->
+                <ion-card class="ion-margin-bottom" color="primary">
+                  <ion-card-header>
+                    <ion-card-title>
+                      <ion-icon name="location" color="light"></ion-icon>
+                      Grupos por Proximidade Geográfica - SELECIONE AQUI
+                    </ion-card-title>
+                    <ion-card-subtitle>
+                      {{ alunosAgrupadosPorProximidade.length }} grupo(s)
+                      formado(s) automaticamente
+                      <ion-badge color="light" style="margin-left: 8px">
+                        Raio: {{ raioProximidade }}km
+                      </ion-badge>
+                      <ion-badge color="success" style="margin-left: 8px">
+                        {{ getTotalAlunosAgrupados() }} aluno(s) agrupado(s)
+                      </ion-badge>
+                    </ion-card-subtitle>
+                  </ion-card-header>
+                </ion-card>
+
+                <!-- Lista de Grupos -->
+                <div *ngFor="let grupo of alunosAgrupadosPorProximidade; let i = index" class="grupo-container">
+                  <ion-card class="grupo-card" [class.grupo-selecionado]="isGrupoCompletamenteSelecionado(grupo)"
+                    [class.grupo-parcial]="isGrupoParcialmenteSelecionado(grupo)">
+                    <!-- Cabeçalho do Grupo -->
+                    <ion-card-header (click)="toggleDetalhesGrupo(grupo.id)" class="grupo-header">
+                      <ion-card-title>
+                        <ion-icon name="people-circle"
+                          [color]="isGrupoCompletamenteSelecionado(grupo) ? 'success' : 'primary'">
+                        </ion-icon>
+                        Grupo {{ i + 1 }}
+                        <ion-badge color="primary" style="margin-left: 8px">
+                          {{ grupo.quantidade }} aluno(s)
+                        </ion-badge>
+                        <ion-badge *ngIf="grupo.raioMaximo" color="medium" style="margin-left: 8px">
+                          Raio: {{ grupo.raioMaximo.toFixed(1) }}km
+                        </ion-badge>
+                        <ion-badge *ngIf="isGrupoCompletamenteSelecionado(grupo)" color="success"
+                          style="margin-left: 8px">
+                          ✓ Selecionado
+                        </ion-badge>
+                        <ion-badge *ngIf="isGrupoParcialmenteSelecionado(grupo)" color="warning"
+                          style="margin-left: 8px">
+                          ~ Parcial
+                        </ion-badge>
+                      </ion-card-title>
+                      <ion-card-subtitle>
+                        <ion-icon name="navigate" color="secondary"></ion-icon>
+                        {{ getDescricaoGrupo(grupo) }}
+                      </ion-card-subtitle>
+                    </ion-card-header>
+
+                    <ion-card-content>
+                      <!-- Ações do Grupo -->
+                      <div class="acoes-grupo">
+                        <ion-grid>
+                          <ion-row>
+                            <ion-col size="6">
+                              <ion-button expand="block" color="success" size="small" (click)="selecionarGrupo(grupo)"
+                                [disabled]="isGrupoCompletamenteSelecionado(grupo) || 
+                                       (agendamentosSelecionados.size + getAlunosDisponiveisGrupo(grupo)) > vanSelecionada?.capacidade">
+                                <ion-icon name="add-circle" slot="start"></ion-icon>
+                                Selecionar Grupo
+                              </ion-button>
+                            </ion-col>
+                            <ion-col size="6">
+                              <ion-button expand="block" color="warning" size="small"
+                                (click)="desselecionarGrupo(grupo)"
+                                [disabled]="!isGrupoParcialmenteSelecionado(grupo) && !isGrupoCompletamenteSelecionado(grupo)">
+                                <ion-icon name="remove-circle" slot="start"></ion-icon>
+                                Remover Grupo
+                              </ion-button>
+                            </ion-col>
+                          </ion-row>
+                        </ion-grid>
+                      </div>
+
+                      <!-- Detalhes do Grupo (expandível) -->
+                      <div *ngIf="grupoExpandido === grupo.id" class="detalhes-grupo">
+                        <ion-list lines="none" class="alunos-grupo">
+                          <ion-item *ngFor="let agendamento of grupo.agendamentos" class="aluno-no-grupo"
+                            [class.aluno-selecionado]="agendamentosSelecionados.has(agendamento.id)"
+                            [class.aluno-indisponivel]="!isAlunoDisponivel(agendamento.id)">
+                            <ion-label>
+                              <p>
+                                <ion-icon name="person" [color]="getCorIconeAlunoGrupo(agendamento.id)" size="small">
+                                </ion-icon>
+                                {{ agendamento.nomeAluno }}
+                                <ion-badge *ngIf="!isAlunoDisponivel(agendamento.id)" color="danger" size="small">
+                                  Indisponível
+                                </ion-badge>
+                                <ion-badge *ngIf="agendamentosSelecionados.has(agendamento.id)" color="success"
+                                  size="small">
+                                  Selecionado
+                                </ion-badge>
+                              </p>
+                              <p class="endereco-aluno">
+                                <small>
+                                  <ion-icon name="location" size="small"></ion-icon>
+                                  {{ agendamento.nomeEndereco }}
+                                </small>
+                              </p>
+                            </ion-label>
+                            <ion-checkbox slot="end" [checked]="agendamentosSelecionados.has(agendamento.id)"
+                              (ionChange)="toggleAgendamentoSelecionado(agendamento.id)"
+                              [disabled]="!isAlunoDisponivel(agendamento.id)">
+                            </ion-checkbox>
+                          </ion-item>
+                        </ion-list>
+                      </div>
+
+                      <!-- Botão para expandir/recolher -->
+                      <ion-button expand="block" fill="clear" size="small" (click)="toggleDetalhesGrupo(grupo.id)"
+                        class="btn-expandir-grupo">
+                        <ion-icon [name]="grupoExpandido === grupo.id ? 'chevron-up' : 'chevron-down'"
+                          slot="end"></ion-icon>
+                        {{ grupoExpandido === grupo.id ? 'Recolher' : 'Ver' }}
+                        Detalhes
+                      </ion-button>
+                    </ion-card-content>
+                  </ion-card>
+                </div>
+
+                <!-- Ações em Lote -->
+                <div class="acoes-lote ion-margin-top">
+                  <ion-card color="secondary">
+                    <ion-card-content>
+                      <h3>Ações em Lote</h3>
+                      <ion-grid>
+                        <ion-row>
+                          <ion-col size="6">
+                            <ion-button expand="block" color="light" size="small" (click)="selecionarTodosGrupos()">
+                              <ion-icon name="checkmark-done" slot="start"></ion-icon>
+                              Selecionar Todos
+                            </ion-button>
+                          </ion-col>
+                          <ion-col size="6">
+                            <ion-button expand="block" color="light" size="small" (click)="limparSelecaoGrupos()">
+                              <ion-icon name="trash" slot="start"></ion-icon>
+                              Limpar Todos
+                            </ion-button>
+                          </ion-col>
+                        </ion-row>
+                      </ion-grid>
+                    </ion-card-content>
+                  </ion-card>
+                </div>
+              </div>
+
+              <!-- Informações da Seleção (mantenha esta parte existente) -->
+              <div *ngIf="agendamentosSelecionados.size > 0" class="van-info ion-margin-bottom">
+                <ion-card color="light">
+                  <ion-card-header>
+                    <ion-card-title>
+                      <ion-icon name="bus"></ion-icon>
+                      Resumo da Seleção
+                    </ion-card-title>
+                  </ion-card-header>
+                  <ion-card-content>
+                    <ion-grid>
+                      <ion-row>
+                        <ion-col size="6">
+                          <p><strong>Data:</strong></p>
+                          <p>{{ dataSelecionada | date:'dd/MM/yyyy' }}</p>
+                        </ion-col>
+                        <ion-col size="6">
+                          <p><strong>Horário:</strong></p>
+                          <p>{{ horarioSelecionado?.horario }}</p>
+                        </ion-col>
+                      </ion-row>
+                      <ion-row>
+                        <ion-col size="6">
+                          <p><strong>Van:</strong></p>
+                          <p>{{ vanSelecionada?.placa }}</p>
+                        </ion-col>
+                        <ion-col size="6">
+                          <p><strong>Capacidade:</strong></p>
+                          <p>{{ vanSelecionada?.capacidade }}</p>
+                        </ion-col>
+                      </ion-row>
+                      <ion-row>
+                        <ion-col>
+                          <p><strong>Alunos selecionados:</strong></p>
+                          <h3
+                            [class]="agendamentosSelecionados.size > vanSelecionada?.capacidade ? 'ion-color-danger' : 'ion-color-success'">
+                            {{ agendamentosSelecionados.size }} / {{
+                            vanSelecionada?.capacidade }}
+                          </h3>
+                        </ion-col>
+                      </ion-row>
+                    </ion-grid>
+
+                    <p *ngIf="agendamentosSelecionados.size > vanSelecionada?.capacidade"
+                      class="van-cheia ion-text-center">
+                      <ion-icon name="warning"></ion-icon> VAN COM EXCESSO DE
+                      ALUNOS!
+                    </p>
+                  </ion-card-content>
+                </ion-card>
+              </div>
+
+              <!-- Ações Finais (mantenha esta parte existente) -->
+              <div class="acoes-presenca" *ngIf="agendamentosSelecionados.size > 0">
+                <ion-button expand="block" color="primary" (click)="criarRotaComPresencas()"
+                  [disabled]="agendamentosSelecionados.size === 0 || agendamentosSelecionados.size > vanSelecionada?.capacidade">
+                  <ion-icon name="checkmark-done" slot="start"></ion-icon>
+                  Registrar Presenças ({{ agendamentosSelecionados.size }}
+                  aluno(s))
+                </ion-button>
+
+                <ion-button expand="block" color="medium" fill="outline" (click)="limparSelecoesPresenca()">
+                  <ion-icon name="refresh" slot="start"></ion-icon>
+                  Limpar Seleções
+                </ion-button>
+              </div>
+            </div>
+
+            <!-- ABA: LISTA DE PRESENÇAS -->
+            <div *ngIf="abaPresenca === 'lista'">
+              <!-- Filtro por Data -->
+              <ion-card class="ion-margin-bottom">
+                <ion-card-header>
+                  <ion-card-title>Filtrar por Data</ion-card-title>
+                </ion-card-header>
+                <ion-card-content>
+                  <ion-item>
+                    <ion-label position="stacked">Data *</ion-label>
+                    <ion-input type="date" [value]="dataSelecionada"
+                      (ionChange)="onDataPresencaChange($event)"></ion-input>
+                  </ion-item>
+
+                  <ion-button expand="block" color="primary" (click)="carregarListaPresencas()" class="ion-margin-top">
+                    <ion-icon name="refresh" slot="start"></ion-icon>
+                    Atualizar Lista
+                  </ion-button>
+                </ion-card-content>
+              </ion-card>
+
+              <!-- Loading State -->
+              <div *ngIf="isLoadingListaPresencas" class="ion-text-center ion-padding">
+                <ion-spinner></ion-spinner>
+                <p>Carregando lista de presenças...</p>
+              </div>
+
+              <div *ngIf="!isLoadingListaPresencas">
+                <!-- Lista de Vans -->
+                <ion-card class="ion-margin-bottom" *ngIf="!vanSelecionadaLista">
+                  <ion-card-header>
+                    <ion-card-title>Selecione uma Van</ion-card-title>
+                    <ion-card-subtitle>
+                      {{ vansParaLista.length }} van(s) disponível(is)
+                    </ion-card-subtitle>
+                  </ion-card-header>
+                  <ion-card-content>
+                    <ion-list>
+                      <ion-item *ngFor="let van of vansParaLista" (click)="selecionarVanLista(van)" button
+                        detail="true">
+                        <ion-label>
+                          <h3>
+                            <ion-icon name="bus" color="primary"></ion-icon>
+                            {{ van.placa }}
+                          </h3>
+                          <p>
+                            <ion-icon name="people" color="secondary"></ion-icon>
+                            Capacidade: {{ van.capacidade }} passageiros
+                          </p>
+                          <p>
+                            <ion-icon name="information" color="medium"></ion-icon>
+                            Clique para ver rotas cadastradas
+                          </p>
+                        </ion-label>
+                      </ion-item>
+                    </ion-list>
+
+                    <div *ngIf="vansParaLista.length === 0" class="ion-text-center ion-padding">
+                      <ion-icon name="bus-outline" size="large" color="medium"></ion-icon>
+                      <h3>Nenhuma van cadastrada</h3>
+                      <p>Cadastre vans primeiro na aba "Vans"</p>
+                    </div>
+                  </ion-card-content>
+                </ion-card>
+
+                <!-- Van Selecionada e Suas Rotas -->
+                <div *ngIf="vanSelecionadaLista">
+                  <!-- Cabeçalho da Van Selecionada -->
+                  <ion-card class="ion-margin-bottom">
+                    <ion-card-header>
+                      <ion-card-title>
+                        <ion-icon name="bus" color="primary"></ion-icon>
+                        Van {{ vanSelecionadaLista.placa }}
+                      </ion-card-title>
+                      <ion-card-subtitle>
+                        Data: {{ dataSelecionada | date:'dd/MM/yyyy' }} |
+                        Capacidade: {{ vanSelecionadaLista.capacidade }}
+                        passageiros | {{ rotasDaVanLista.length }} rota(s)
+                        cadastrada(s)
+                      </ion-card-subtitle>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <ion-button expand="block" color="medium" fill="outline" (click)="limparSelecaoLista()">
+                        <ion-icon name="arrow-back" slot="start"></ion-icon>
+                        Voltar para Lista de Vans
+                      </ion-button>
+                    </ion-card-content>
+                  </ion-card>
+
+                  <!-- Lista de Rotas da Van -->
+                  <div *ngIf="rotasDaVanLista.length > 0">
+                    <ion-card *ngFor="let rota of rotasDaVanLista" class="rota-card">
+                      <ion-card-header (click)="toggleDetalhesRotaLista(rota.id)" button>
+                        <ion-card-title>
+                          <ion-icon name="time" color="primary"></ion-icon>
+                          Horário: {{ rota.horario }}
+                        </ion-card-title>
+                        <ion-card-subtitle>
+                          Motorista: {{ getMotoristaInfo(rota) }} | Alunos: {{
+                          getQuantidadeAlunosRotaLista(rota.id) }}/{{
+                          vanSelecionadaLista.capacidade }}
+                        </ion-card-subtitle>
+                        <ion-badge [color]="getQuantidadeAlunosRotaLista(rota.id) > 0 ? 'success' : 'warning'"
+                          style="margin-top: 8px">
+                          {{ getQuantidadeAlunosRotaLista(rota.id) }} aluno(s)
+                        </ion-badge>
+                      </ion-card-header>
+
+                      <!-- Detalhes Expandidos da Rota -->
+                      <ion-card-content *ngIf="rotaExpandidaLista === rota.id">
+                        <div class="detalhes-rota">
+                          <h4>
+                            <ion-icon name="list" color="primary"></ion-icon>
+                            Lista de Alunos
+                          </h4>
+
+                          <ion-list>
+                            <ion-item *ngFor="let agendamento of getAgendamentosDaRotaLista(rota.id); let i = index"
+                              class="aluno-item">
+                              <ion-label>
+                                <h5>
+                                  <ion-icon name="person" color="primary"></ion-icon>
+                                  {{ agendamento.nomeAluno || 'Aluno ' +
+                                  agendamento.idAluno }}
+                                </h5>
+                                <p>
+                                  <ion-icon name="mail" color="secondary"></ion-icon>
+                                  {{ agendamento.emailAluno || 'Email não
+                                  informado' }}
+                                </p>
+                                <p>
+                                  <ion-icon name="location" color="tertiary"></ion-icon>
+                                  {{ agendamento.nomeEndereco || 'Endereço não
+                                  informado' }}
+                                </p>
+                                <p *ngIf="agendamento.descricaoEndereco">
+                                  <ion-icon name="information" color="medium"></ion-icon>
+                                  {{ agendamento.descricaoEndereco }}
+                                </p>
+                                <ion-badge color="light" *ngIf="agendamento.ordem">
+                                  Ordem: {{ agendamento.ordem }}
+                                </ion-badge>
+                              </ion-label>
+                            </ion-item>
+                          </ion-list>
+
+                          <div *ngIf="getAgendamentosDaRotaLista(rota.id).length === 0"
+                            class="ion-text-center ion-padding">
+                            <ion-icon name="people-outline" size="large" color="medium"></ion-icon>
+                            <h5>Nenhum aluno nesta rota</h5>
+                            <p>
+                              Adicione alunos através da aba "Registrar
+                              Presenças"
+                            </p>
+                          </div>
+                        </div>
+
+                        <!-- Ações da Rota -->
+                        <div class="acoes-rota ion-margin-top">
+                          <ion-button color="primary" fill="outline" size="small"
+                            (click)="editarRota(rota); $event.stopPropagation()">
+                            <ion-icon name="create" slot="start"></ion-icon>
+                            Editar
+                          </ion-button>
+
+                          <ion-button color="danger" fill="outline" size="small"
+                            (click)="excluirRotaLista(rota); $event.stopPropagation()">
+                            <ion-icon name="trash" slot="start"></ion-icon>
+                            Excluir
+                          </ion-button>
+                        </div>
+                      </ion-card-content>
+
+                      <!-- Ícone de Expandir/Recolher -->
+                      <ion-button fill="clear" size="small" (click)="toggleDetalhesRotaLista(rota.id)"
+                        class="btn-expandir">
+                        <ion-icon [name]="rotaExpandidaLista === rota.id ? 'chevron-up' : 'chevron-down'"
+                          slot="icon-only"></ion-icon>
+                      </ion-button>
+                    </ion-card>
+                  </div>
+
+                  <!-- SEÇÃO DE EDIÇÃO DE ROTA -->
+                  <div *ngIf="rotaEditando" class="edicao-rota-section">
+                    <ion-card class="ion-margin-top" color="warning">
+                      <ion-card-header>
+                        <ion-card-title>
+                          <ion-icon name="create"></ion-icon>
+                          Editando Rota - Horário: {{ rotaEditando.horario }}
+                        </ion-card-title>
+                        <ion-card-subtitle>
+                          Van: {{ getVanPorId(rotaEditando.idVan)?.placa }} |
+                          Data: {{ rotaEditando.data | date:'dd/MM/yyyy' }} |
+                          Capacidade: {{
+                          getVanPorId(rotaEditando.idVan)?.capacidade }} alunos
+                        </ion-card-subtitle>
+                      </ion-card-header>
+
+                      <ion-card-content>
+                        <!-- Loading State -->
+                        <div *ngIf="isLoadingAgendamentosEdicao" class="ion-text-center ion-padding">
+                          <ion-spinner></ion-spinner>
+                          <p>Carregando agendamentos...</p>
+                        </div>
+
+                        <!-- Lista de Agendamentos Disponíveis -->
+                        <div *ngIf="!isLoadingAgendamentosEdicao">
+                          <h4>Selecione os alunos para esta rota:</h4>
+                          <p>
+                            <strong>Selecionados: {{
+                              agendamentosSelecionadosEdicao.size }}</strong>
+                            / Capacidade: {{
+                            getVanPorId(rotaEditando.idVan)?.capacidade }}
+                          </p>
+
+                          <!-- Loading para verificação de disponibilidade -->
+                          <div *ngIf="isLoadingAlunosIndisponiveisEdicao" class="ion-text-center ion-padding">
+                            <ion-spinner></ion-spinner>
+                            <p>Verificando disponibilidade dos alunos...</p>
+                          </div>
+
+                          <ion-list>
+                            <ion-item *ngFor="let agendamento of agendamentosDisponiveisEdicao"
+                              [class.selected]="agendamentosSelecionadosEdicao.has(agendamento.id)"
+                              [class.aluno-indisponivel]="!isAlunoDisponivelEdicao(agendamento.id)"
+                              [class.aluno-disponivel]="isAlunoDisponivelEdicao(agendamento.id)" button detail="false">
+                              <ion-label>
+                                <h3>
+                                  <ion-icon
+                                    [name]="isAlunoDisponivelEdicao(agendamento.id) ? 'person' : 'person-remove'"
+                                    [color]="getCorBadgeAlunoEdicao(agendamento.id)"></ion-icon>
+                                  {{ agendamento.nomeAluno || 'Aluno ' +
+                                  agendamento.idAluno }}
+                                  <ion-badge [color]="getCorBadgeAlunoEdicao(agendamento.id)" style="margin-left: 8px">
+                                    {{ getTextoStatusAlunoEdicao(agendamento.id)
+                                    }}
+                                  </ion-badge>
+                                </h3>
+                                <p>
+                                  <ion-icon name="mail" color="secondary"></ion-icon>
+                                  {{ agendamento.emailAluno || 'Email não
+                                  informado' }}
+                                </p>
+                                <p>
+                                  <ion-icon name="time" color="primary"></ion-icon>
+                                  Horário: {{
+                                  getHorarioAgendamentoEdicao(agendamento) }}
+                                </p>
+                                <p>
+                                  <ion-icon name="location" color="tertiary"></ion-icon>
+                                  {{ agendamento.nomeEndereco || 'Endereço não
+                                  informado' }}
+                                </p>
+                                <p *ngIf="agendamento.descricaoEndereco">
+                                  <ion-icon name="information" color="medium"></ion-icon>
+                                  {{ agendamento.descricaoEndereco }}
+                                </p>
+                              </ion-label>
+
+                              <ion-checkbox slot="end" [checked]="agendamentosSelecionadosEdicao.has(agendamento.id)"
+                                (ionChange)="toggleAgendamentoEdicao(agendamento.id)"
+                                [disabled]="!isAlunoDisponivelEdicao(agendamento.id)"></ion-checkbox>
+                            </ion-item>
+                          </ion-list>
+
+                          <div *ngIf="agendamentosDisponiveisEdicao.length === 0" class="ion-text-center ion-padding">
+                            <ion-icon name="people-outline" size="large"></ion-icon>
+                            <p>Nenhum agendamento disponível para esta data</p>
+                          </div>
+                        </div>
+
+                        <!-- Ações -->
+                        <div class="acoes-edicao ion-margin-top">
+                          <ion-button expand="block" color="primary" (click)="salvarEdicaoRota()"
+                            [disabled]="agendamentosSelecionadosEdicao.size === 0">
+                            <ion-icon name="save" slot="start"></ion-icon>
+                            Salvar Alterações ({{
+                            agendamentosSelecionadosEdicao.size }} alunos)
+                          </ion-button>
+
+                          <ion-button expand="block" color="medium" fill="outline" (click)="cancelarEdicaoRota()">
+                            <ion-icon name="close" slot="start"></ion-icon>
+                            Cancelar Edição
+                          </ion-button>
+                        </div>
+                      </ion-card-content>
+                    </ion-card>
+                  </div>
+
+                  <!-- Estado Vazio - Nenhuma Rota -->
+                  <div *ngIf="rotasDaVanLista.length === 0" class="ion-text-center ion-padding">
+                    <ion-card color="light">
+                      <ion-card-content>
+                        <ion-icon name="route-outline" size="large" color="medium"></ion-icon>
+                        <h3>Nenhuma rota cadastrada</h3>
+                        <p>
+                          Não há rotas cadastradas para a van {{
+                          vanSelecionadaLista.placa }} na data {{
+                          dataSelecionada | date:'dd/MM/yyyy' }}
+                        </p>
+                        <ion-button color="primary" fill="outline" (click)="abaPresenca = 'registrar'"
+                          class="ion-margin-top">
+                          <ion-icon name="add" slot="start"></ion-icon>
+                          Cadastrar Primeira Rota
+                        </ion-button>
+                      </ion-card-content>
+                    </ion-card>
+                  </div>
+                </div>
+
+                <!-- Estado Vazio Geral - Nenhuma Van -->
+                <div *ngIf="vansParaLista.length === 0 && !isLoadingListaPresencas" class="ion-text-center ion-padding">
+                  <ion-card color="light">
+                    <ion-card-content>
+                      <ion-icon name="bus-outline" size="large" color="medium"></ion-icon>
+                      <h3>Nenhuma van cadastrada</h3>
+                      <p>
+                        Para visualizar rotas, primeiro cadastre vans no sistema
+                      </p>
+                      <ion-button color="primary" fill="outline" (click)="toggleArea('vans')" class="ion-margin-top">
+                        <ion-icon name="bus" slot="start"></ion-icon>
+                        Ir para Gerenciar Vans
+                      </ion-button>
+                    </ion-card-content>
+                  </ion-card>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Área de Vans -->
+        <div *ngIf="activeArea === 'vans'" class="area-content">
+          <h2><ion-icon name="bus"></ion-icon> Gerenciar Vans</h2>
+
+          <!-- Botão para adicionar nova van -->
+          <div class="ion-margin-bottom">
+            <ion-button (click)="toggleVanForm()" color="primary">
+              <ion-icon name="add" slot="start"></ion-icon>
+              {{ showVanForm ? 'Cancelar' : 'Nova Van' }}
+            </ion-button>
+          </div>
+
+          <!-- Loading State -->
+          <div *ngIf="isLoadingVans" class="ion-text-center ion-padding">
+            <ion-spinner></ion-spinner>
+            <p>Carregando vans...</p>
+          </div>
+
+          <!-- Formulário de Nova Van -->
+          <div *ngIf="showVanForm && !showEditarForm">
+            <ion-card>
+              <ion-card-header>
+                <ion-card-title>Adicionar Nova Van</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+                <form [formGroup]="novaVanForm">
+                  <ion-item>
+                    <ion-label position="stacked">Placa *</ion-label>
+                    <ion-input formControlName="placa" placeholder="Ex: ABC-1234" type="text">
+                    </ion-input>
+                  </ion-item>
+                  <ion-note color="danger"
+                    *ngIf="novaVanForm.get('placa')?.invalid && novaVanForm.get('placa')?.touched">
+                    Placa deve estar no formato ABC-1234
+                  </ion-note>
+
+                  <ion-item>
+                    <ion-label position="stacked">Capacidade *</ion-label>
+                    <ion-input formControlName="capacidade" type="number" placeholder="Número de passageiros">
+                    </ion-input>
+                  </ion-item>
+                  <ion-note color="danger"
+                    *ngIf="novaVanForm.get('capacidade')?.invalid && novaVanForm.get('capacidade')?.touched">
+                    Capacidade deve ser entre 1 e 50
+                  </ion-note>
+
+                  <ion-button expand="block" color="primary" (click)="adicionarVan()" [disabled]="!novaVanForm.valid"
+                    class="ion-margin-top">
+                    <ion-icon name="save" slot="start"></ion-icon>
+                    Adicionar Van
+                  </ion-button>
+                </form>
+              </ion-card-content>
+            </ion-card>
+          </div>
+
+          <!-- Formulário de Edição de Van -->
+          <div *ngIf="showEditarForm && vanEditando" class="ion-margin-top">
+            <ion-card color="warning">
+              <ion-card-header>
+                <ion-card-title>
+                  <ion-icon name="create"></ion-icon>
+                  Editando Van: {{ vanEditando.placa }}
+                </ion-card-title>
+                <ion-card-subtitle>
+                  ID: {{ vanEditando.id }} | Capacidade atual: {{
+                  vanEditando.capacidade }}
+                </ion-card-subtitle>
+              </ion-card-header>
+              <ion-card-content>
+                <form [formGroup]="editarVanForm">
+                  <ion-item>
+                    <ion-label position="stacked">Placa *</ion-label>
+                    <ion-input formControlName="placa" placeholder="Ex: ABC-1234" type="text">
+                    </ion-input>
+                  </ion-item>
+                  <ion-note color="danger"
+                    *ngIf="editarVanForm.get('placa')?.invalid && editarVanForm.get('placa')?.touched">
+                    Placa deve estar no formato ABC-1234
+                  </ion-note>
+
+                  <ion-item>
+                    <ion-label position="stacked">Capacidade *</ion-label>
+                    <ion-input formControlName="capacidade" type="number" placeholder="Número de passageiros" min="1"
+                      max="50">
+                    </ion-input>
+                  </ion-item>
+                  <ion-note color="danger"
+                    *ngIf="editarVanForm.get('capacidade')?.invalid && editarVanForm.get('capacidade')?.touched">
+                    Capacidade deve ser entre 1 e 50
+                  </ion-note>
+
+                  <div class="ion-margin-top">
+                    <ion-button expand="block" color="primary" (click)="salvarEdicao()"
+                      [disabled]="!editarVanForm.valid">
+                      <ion-icon name="save" slot="start"></ion-icon>
+                      Salvar Alterações
+                    </ion-button>
+
+                    <ion-button expand="block" color="medium" fill="outline" (click)="cancelarEdicao()"
+                      class="ion-margin-top">
+                      <ion-icon name="close" slot="start"></ion-icon>
+                      Cancelar Edição
+                    </ion-button>
+                  </div>
+                </form>
+              </ion-card-content>
+            </ion-card>
+          </div>
+
+          <!-- Lista de Vans -->
+          <div *ngIf="!isLoadingVans">
+            <ion-list>
+              <ion-item *ngFor="let van of vans" class="van-item">
+                <ion-label>
+                  <h3>
+                    <ion-icon name="bus" color="primary"></ion-icon>
+                    {{ van.placa }}
+                  </h3>
+                  <p>Capacidade: {{ van.capacidade }} passageiros</p>
+                  <p *ngIf="van.id">ID: {{ van.id }}</p>
+                </ion-label>
+                <ion-buttons slot="end">
+                  <ion-button fill="clear" color="primary" (click)="editarVan(van)">
+                    <ion-icon name="create"></ion-icon>
+                  </ion-button>
+                  <ion-button fill="clear" color="danger" (click)="excluirVan(van)">
+                    <ion-icon name="trash"></ion-icon>
+                  </ion-button>
+                </ion-buttons>
+              </ion-item>
+
+              <ion-item *ngIf="vans.length === 0">
+                <ion-label class="ion-text-center">
+                  <ion-icon name="bus-outline" size="large"></ion-icon>
+                  <h3>Nenhuma van cadastrada</h3>
+                  <p>Clique em "Nova Van" para adicionar a primeira</p>
+                </ion-label>
+              </ion-item>
+            </ion-list>
+          </div>
+        </div>
+
+        <!-- Área de Validação de Acesso -->
+        <div *ngIf="activeArea === 'validacao'" class="area-content">
+          <h2>
+            <ion-icon name="shield-checkmark"></ion-icon> Validar Acesso de
+            Usuários
+          </h2>
+
+          <!-- Loading State -->
+          <div *ngIf="isLoadingValidacao" class="ion-text-center ion-padding">
+            <ion-spinner></ion-spinner>
+            <p>Carregando usuários...</p>
+          </div>
+
+          <div *ngIf="!isLoadingValidacao">
+            <!-- Filtros -->
+            <ion-segment [value]="filtroStatus" (ionChange)="onSegmentChange($event)" class="ion-margin-bottom">
+              <ion-segment-button value="pendentes">
+                <ion-label>Pendentes</ion-label>
+              </ion-segment-button>
+              <ion-segment-button value="aprovados">
+                <ion-label>Aprovados</ion-label>
+              </ion-segment-button>
+              <ion-segment-button value="rejeitados">
+                <ion-label>Rejeitados</ion-label>
+              </ion-segment-button>
+              <ion-segment-button value="suspensos">
+                <ion-label>Suspensos</ion-label>
+              </ion-segment-button>
+            </ion-segment>
+
+            <!-- Lista de Usuários -->
+            <ion-list>
+              <ion-item *ngFor="let usuario of getUsuariosFiltrados()" (click)="selecionarUsuario(usuario)"
+                [class.selected]="usuarioSelecionado?.id === usuario.id">
+                <ion-label>
+                  <h3>{{ usuario.nome }}</h3>
+                  <p>Email: {{ usuario.email }}</p>
+                  <p>Telefone: {{ usuario.telefone }}</p>
+                  <p>
+                    <ion-badge [color]="getStatusBadgeColor(usuario.status)">
+                      {{ getStatusText(usuario.status) }}
+                    </ion-badge>
+                  </p>
+                </ion-label>
+                <ion-buttons slot="end">
+                  <ion-button *ngIf="filtroStatus === 'pendentes'" fill="clear" color="success"
+                    (click)="aprovarUsuario(usuario); $event.stopPropagation()">
+                    <ion-icon name="checkmark-circle"></ion-icon>
+                  </ion-button>
+                  <ion-button *ngIf="filtroStatus === 'pendentes'" fill="clear" color="danger"
+                    (click)="selecionarUsuario(usuario, true); $event.stopPropagation()">
+                    <ion-icon name="close-circle"></ion-icon>
+                  </ion-button>
+                  <ion-button *ngIf="filtroStatus === 'aprovados'" fill="clear" color="warning"
+                    (click)="suspenderUsuario(usuario); $event.stopPropagation()">
+                    <ion-icon name="lock-closed"></ion-icon>
+                  </ion-button>
+                  <ion-button *ngIf="filtroStatus === 'rejeitados'" fill="clear" color="success"
+                    (click)="aprovarUsuarioRejeitado(usuario); $event.stopPropagation()">
+                    <ion-icon name="checkmark-circle"></ion-icon>
+                  </ion-button>
+                  <ion-button *ngIf="filtroStatus === 'suspensos'" fill="clear" color="success"
+                    (click)="ativarUsuario(usuario); $event.stopPropagation()">
+                    <ion-icon name="play-circle"></ion-icon>
+                  </ion-button>
+                </ion-buttons>
+              </ion-item>
+              <ion-item *ngIf="getUsuariosFiltrados().length === 0">
+                <ion-label class="ion-text-center">
+                  <ion-icon name="people-outline" size="large"></ion-icon>
+                  <h3>Nenhum usuário encontrado</h3>
+                </ion-label>
+              </ion-item>
+            </ion-list>
+
+            <!-- Detalhes do Usuário Selecionado -->
+            <div *ngIf="usuarioSelecionado" class="detalhes-usuario ion-margin-top">
+              <ion-card>
+                <ion-card-header>
+                  <ion-card-title>Detalhes do Usuário</ion-card-title>
+                  <ion-card-subtitle>{{ usuarioSelecionado.nome }}</ion-card-subtitle>
+                </ion-card-header>
+                <ion-card-content>
+                  <ion-list>
+                    <ion-item>
+                      <ion-label>Email</ion-label>
+                      <ion-note slot="end">{{ usuarioSelecionado.email }}</ion-note>
+                    </ion-item>
+                    <ion-item>
+                      <ion-label>Telefone</ion-label>
+                      <ion-note slot="end">{{ usuarioSelecionado.telefone }}</ion-note>
+                    </ion-item>
+                    <ion-item>
+                      <ion-label>Tipo</ion-label>
+                      <ion-note slot="end">{{ usuarioSelecionado.tipo }}</ion-note>
+                    </ion-item>
+                    <ion-item>
+                      <ion-label>Status</ion-label>
+                      <ion-badge slot="end" [color]="getStatusBadgeColor(usuarioSelecionado.status)">
+                        {{ getStatusText(usuarioSelecionado.status) }}
+                      </ion-badge>
+                    </ion-item>
+                  </ion-list>
+
+                  <!-- Motivo da rejeição/suspensão -->
+                  <ion-item *ngIf="usuarioSelecionado.motivoStatus || usuarioSelecionado.motivo">
+                    <ion-label>Motivo</ion-label>
+                    <ion-note slot="end">{{ usuarioSelecionado.motivoStatus ||
+                      usuarioSelecionado.motivo }}</ion-note>
+                  </ion-item>
+
+                  <!-- Formulário de rejeição apenas para pendentes -->
+                  <div *ngIf="filtroStatus === 'pendentes'" class="ion-margin-top" #secaoMotivo>
+                    <ion-item>
+                      <ion-label position="stacked">Motivo da Rejeição *</ion-label>
+                      <ion-textarea [(ngModel)]="motivoRejeicao"
+                        placeholder="Informe o motivo da rejeição (mínimo 10 caracteres)" rows="3"></ion-textarea>
+                    </ion-item>
+                    <ion-note color="danger" *ngIf="motivoRejeicao && motivoRejeicao.length < 10">
+                      Motivo deve ter pelo menos 10 caracteres
+                    </ion-note>
+                    <div class="ion-margin-top">
+                      <ion-button expand="block" color="danger" (click)="rejeitarUsuario()"
+                        [disabled]="!motivoRejeicao || motivoRejeicao.length < 10">
+                        <ion-icon name="close-circle" slot="start"></ion-icon>
+                        Rejeitar Usuário
+                      </ion-button>
+                    </div>
+                  </div>
+
+                  <ion-button expand="block" color="medium" fill="outline" (click)="limparSelecaoUsuario()"
+                    class="ion-margin-top">
+                    <ion-icon name="close" slot="start"></ion-icon>
+                    Limpar Seleção
+                  </ion-button>
+                </ion-card-content>
+              </ion-card>
+            </div>
+          </div>
+        </div>
+
+        <!-- Área de Administração -->
+        <div *ngIf="activeArea === 'admin'" class="area-content">
+          <h2>
+            <ion-icon name="settings"></ion-icon> Administração do Sistema
+          </h2>
+
+          <ion-grid>
+            <ion-row>
+              <ion-col size="12" size-md="6">
+                <ion-card (click)="toggleArea('validacao')" button class="admin-card">
+                  <ion-card-header>
+                    <ion-icon name="shield-checkmark" size="large" color="primary"></ion-icon>
+                    <ion-card-title>Validar Acesso</ion-card-title>
+                  </ion-card-header>
+                  <ion-card-content>
+                    Aprovar, rejeitar ou suspender acesso de usuários
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+
+              <!-- NOVO BOTÃO PARA ATRIBUIR VAN A MOTORISTA -->
+              <ion-col size="12" size-md="6">
+                <ion-card (click)="toggleArea('atribuir-van')" button class="admin-card">
+                  <ion-card-header>
+                    <ion-icon name="car" size="large" color="primary"></ion-icon>
+                    <ion-card-title>Atribuir Vans</ion-card-title>
+                  </ion-card-header>
+                  <ion-card-content>
+                    Atribuir vans aos motoristas para as rotas diárias
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+
+              <ion-col size="12" size-md="6">
+                <ion-card button class="admin-card" (click)="mostrarEmDesenvolvimento()">
+                  <ion-card-header>
+                    <ion-icon name="time" size="large" color="medium"></ion-icon>
+                    <ion-card-title>Configurações</ion-card-title>
+                  </ion-card-header>
+                  <ion-card-content>
+                    Configurar parâmetros do sistema
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+
+              <ion-col size="12" size-md="6">
+                <ion-card button class="admin-card" (click)="mostrarEmDesenvolvimento()">
+                  <ion-card-header>
+                    <ion-icon name="document-text" size="large" color="medium"></ion-icon>
+                    <ion-card-title>Relatórios</ion-card-title>
+                  </ion-card-header>
+                  <ion-card-content>
+                    Gerar relatórios do sistema
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+
+              <ion-col size="12" size-md="6">
+                <ion-card button class="admin-card" (click)="mostrarEmDesenvolvimento()">
+                  <ion-card-header>
+                    <ion-icon name="cloud-upload" size="large" color="medium"></ion-icon>
+                    <ion-card-title>Backup</ion-card-title>
+                  </ion-card-header>
+                  <ion-card-content>
+                    Realizar backup dos dados
+                  </ion-card-content>
+                </ion-card>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </div>
+
+        <!-- Área de Atribuir Van a Motorista -->
+        <div *ngIf="activeArea === 'atribuir-van'" class="area-content atribuicao-container">
+          <h2><ion-icon name="car"></ion-icon> Gerenciar Atribuição de Vans</h2>
+
+          <!-- Menu de Navegação -->
+          <ion-segment [value]="abaAtual" (ionChange)="mudarAba($event)" class="ion-margin-bottom">
+            <ion-segment-button value="criar">
+              <ion-label>Nova Atribuição</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="lista">
+              <ion-label>Lista de Atribuições</ion-label>
+            </ion-segment-button>
+          </ion-segment>
+
+          <!-- Loading State -->
+          <div *ngIf="isLoadingAtribuicao" class="loading-atribuicao">
+            <ion-spinner></ion-spinner>
+            <p>Carregando dados...</p>
+          </div>
+
+          <div *ngIf="!isLoadingAtribuicao">
+            <!-- ABA: NOVA ATRIBUIÇÃO -->
+            <div *ngIf="abaAtual === 'criar'">
+              <!-- Filtro por data -->
+              <ion-item class="ion-margin-bottom">
+                <ion-label position="stacked">Data da Atribuição</ion-label>
+                <ion-input type="date" [(ngModel)]="dataAtribuicao" (ionChange)="carregarAtribuicoes()"></ion-input>
+              </ion-item>
+
+              <!-- Estatísticas Rápidas -->
+              <ion-card class="ion-margin-bottom">
+                <ion-card-content>
+                  <ion-grid>
+                    <ion-row>
+                      <ion-col size="6" class="ion-text-center">
+                        <h3>{{ atribuicoesDoDia.length }}</h3>
+                        <p>Atribuições</p>
+                      </ion-col>
+                      <ion-col size="6" class="ion-text-center">
+                        <h3>{{ vans.length - atribuicoesDoDia.length }}</h3>
+                        <p>Vans Livres</p>
+                      </ion-col>
+                    </ion-row>
+                  </ion-grid>
+                </ion-card-content>
+              </ion-card>
+
+              <!-- Formulário de Nova Atribuição -->
+              <div class="atribuicao-form">
+                <h3>Nova Atribuição</h3>
+
+                <!-- Select de Motorista - Simplificado -->
+                <ion-item>
+                  <ion-label position="stacked">Motorista *</ion-label>
+                  <ion-select [(ngModel)]="atribuicaoSelecionada.idMotorista" interface="action-sheet"
+                    (ionChange)="onMotoristaSelecionado()" placeholder="Escolha um motorista...">
+                    <ion-select-option value="">Selecione um motorista</ion-select-option>
+                    <ion-select-option *ngFor="let motorista of motoristas" [value]="motorista.id"
+                      [disabled]="isMotoristaAtribuido(motorista.id)">
+                      {{ getTextoMotorista(motorista) }}
+                      <span *ngIf="isMotoristaAtribuido(motorista.id)">
+                        ⚠️</span>
+                      <span *ngIf="isUsuarioAtual(motorista.id)"> 👤</span>
+                    </ion-select-option>
+                  </ion-select>
+                </ion-item>
+
+                <!-- Botão para ver detalhes dos motoristas -->
+                <div class="ion-margin-bottom">
+                  <ion-button expand="block" fill="outline" color="medium" (click)="toggleDetalhesMotoristas()">
+                    <ion-icon name="information-circle" slot="start"></ion-icon>
+                    {{ mostrarDetalhesMotoristas ? 'Ocultar' : 'Ver' }} Detalhes
+                    dos Motoristas
+                  </ion-button>
+                </div>
+
+                <!-- Lista de Motoristas com Detalhes (Opcional) -->
+                <div *ngIf="mostrarDetalhesMotoristas">
+                  <ion-card class="ion-margin-bottom">
+                    <ion-card-header>
+                      <ion-card-title>Detalhes dos Motoristas</ion-card-title>
+                    </ion-card-header>
+                    <ion-card-content>
+                      <ion-list>
+                        <ion-item *ngFor="let motorista of motoristas" (click)="selecionarMotorista(motorista.id)"
+                          [class.selected]="atribuicaoSelecionada.idMotorista === motorista.id" button>
+                          <ion-label>
+                            <h3>
+                              <ion-icon name="person" slot="start"
+                                [color]="isUsuarioAtual(motorista.id) ? 'primary' : 'medium'"></ion-icon>
+                              {{ getTextoMotorista(motorista) }}
+                              <ion-badge *ngIf="isUsuarioAtual(motorista.id)" color="primary" size="small">
+                                Você
+                              </ion-badge>
+                              <ion-badge *ngIf="isMotoristaAtribuido(motorista.id)" color="warning" size="small">
+                                Atribuído
+                              </ion-badge>
+                            </h3>
+                            <p>Email: {{ motorista.email }}</p>
+                            <p>Telefone: {{ motorista.telefone }}</p>
+                            <p>
+                              <strong>CNH:</strong> {{ motorista.cnh || 'Não
+                              informada' }}
+                            </p>
+                            <p>
+                              <strong>Status:</strong>
+                              <ion-badge [color]="getStatusBadgeColor(motorista.status)">
+                                {{ getStatusText(motorista.status) }}
+                              </ion-badge>
+                            </p>
+                          </ion-label>
+                          <ion-icon *ngIf="atribuicaoSelecionada.idMotorista === motorista.id" name="checkmark-circle"
+                            color="success" slot="end"></ion-icon>
+                        </ion-item>
+                      </ion-list>
+                    </ion-card-content>
+                  </ion-card>
+                </div>
+
+                <!-- Select de Van -->
+                <ion-item>
+                  <ion-label position="stacked">Van *</ion-label>
+                  <ion-select [(ngModel)]="atribuicaoSelecionada.idVan" interface="action-sheet"
+                    (ionChange)="onVanSelecionada()">
+                    <ion-select-option value="">Selecione uma van</ion-select-option>
+                    <ion-select-option *ngFor="let van of vans" [value]="van.id" [disabled]="isVanAtribuida(van.id)">
+                      {{ van.placa }} - Capacidade: {{ van.capacidade }}
+                      <span *ngIf="isVanAtribuida(van.id)">
+                        (Já atribuída)</span>
+                    </ion-select-option>
+                  </ion-select>
+                </ion-item>
+
+                <!-- Informações da Seleção -->
+                <div *ngIf="atribuicaoSelecionada.idMotorista && atribuicaoSelecionada.idVan" class="ion-margin-top"
+                  [class.selecao-admin]="isUsuarioAtual(atribuicaoSelecionada.idMotorista)">
+                  <ion-card [color]="isUsuarioAtual(atribuicaoSelecionada.idMotorista) ? 'success' : 'light'">
+                    <ion-card-content>
+                      <p>
+                        <strong>Motorista:</strong>
+                        {{
+                        getTextoMotorista(getMotoristaPorId(atribuicaoSelecionada.idMotorista))
+                        }}
+                        <ion-badge *ngIf="isUsuarioAtual(atribuicaoSelecionada.idMotorista)" color="success"
+                          size="small">
+                          Você
+                        </ion-badge>
+                      </p>
+                      <p>
+                        <strong>Van:</strong> {{
+                        getVanPorId(atribuicaoSelecionada.idVan)?.placa }}
+                      </p>
+                      <p>
+                        <strong>Capacidade:</strong> {{
+                        getVanPorId(atribuicaoSelecionada.idVan)?.capacidade }}
+                        passageiros
+                      </p>
+                      <p>
+                        <strong>Data:</strong> {{ dataAtribuicao |
+                        date:'dd/MM/yyyy' }}
+                      </p>
+                    </ion-card-content>
+                  </ion-card>
+                </div>
+
+                <ion-button expand="block" color="primary" (click)="salvarAtribuicao()"
+                  [disabled]="!atribuicaoSelecionada.idMotorista || !atribuicaoSelecionada.idVan"
+                  class="btn-atribuicao ion-margin-top">
+                  <ion-icon name="save" slot="start"></ion-icon>
+                  {{ isUsuarioAtual(atribuicaoSelecionada.idMotorista) ?
+                  'Atribuir Van a Mim' : 'Salvar Atribuição' }}
+                </ion-button>
+              </div>
+            </div>
+
+            <!-- ABA: LISTA DE ATRIBUIÇÕES -->
+            <div *ngIf="abaAtual === 'lista'">
+              <!-- Filtro por data -->
+              <ion-item class="ion-margin-bottom">
+                <ion-label position="stacked">Data para Visualizar</ion-label>
+                <ion-input type="date" [(ngModel)]="dataAtribuicao" (ionChange)="carregarAtribuicoes()"></ion-input>
+              </ion-item>
+
+              <!-- Lista de Atribuições do Dia -->
+              <ion-card>
+                <ion-card-header>
+                  <ion-card-title>
+                    Atribuições para {{ dataAtribuicao | date:'dd/MM/yyyy' }}
+                    <ion-badge color="primary" class="ion-margin-start">{{ atribuicoesDoDia.length }}</ion-badge>
+                  </ion-card-title>
+                </ion-card-header>
+                <ion-card-content>
+                  <div *ngIf="atribuicoesDoDia.length === 0" class="estado-vazio">
+                    <ion-icon name="information-circle-outline"></ion-icon>
+                    <h3>Nenhuma atribuição para esta data</h3>
+                    <p>Vá para a aba "Nova Atribuição" para criar uma</p>
+                  </div>
+
+                  <div *ngIf="atribuicoesDoDia.length > 0">
+                    <ion-list>
+                      <ion-item-sliding *ngFor="let atribuicao of atribuicoesDoDia">
+                        <ion-item class="atribuicao-item"
+                          [class.minha-atribuicao]="isUsuarioAtual(atribuicao.idMotorista)">
+                          <ion-label>
+                            <h3>
+                              <ion-icon name="person"
+                                [color]="isUsuarioAtual(atribuicao.idMotorista) ? 'primary' : 'medium'"></ion-icon>
+                              {{ getTextoMotorista(atribuicao) }}
+                              <ion-badge *ngIf="isUsuarioAtual(atribuicao.idMotorista)" color="primary" size="small">
+                                Você
+                              </ion-badge>
+                            </h3>
+                            <p>
+                              <ion-icon name="bus" color="secondary"></ion-icon>
+                              Van: {{ atribuicao.placaVan ||
+                              getVanPorId(atribuicao.idVan)?.placa }}
+                            </p>
+                            <p>
+                              <ion-icon name="people" color="tertiary"></ion-icon>
+                              Capacidade: {{
+                              getVanPorId(atribuicao.idVan)?.capacidade }}
+                              passageiros
+                            </p>
+                            <p>
+                              <ion-icon name="calendar" color="medium"></ion-icon>
+                              Data: {{ atribuicao.data | date:'dd/MM/yyyy' }}
+                            </p>
+                            <ion-badge *ngIf="atribuicao.id" color="success">
+                              ID: {{ atribuicao.id }}
+                            </ion-badge>
+                          </ion-label>
+                          <ion-buttons slot="end">
+                            <ion-button fill="clear" color="primary"
+                              (click)="editarAtribuicao(atribuicao); $event.stopPropagation()">
+                              <ion-icon name="create"></ion-icon>
+                            </ion-button>
+                          </ion-buttons>
+                        </ion-item>
+
+                        <ion-item-options side="end">
+                          <ion-item-option color="danger" (click)="excluirAtribuicao(atribuicao)">
+                            <ion-icon slot="icon-only" name="trash"></ion-icon>
+                          </ion-item-option>
+                        </ion-item-options>
+                      </ion-item-sliding>
+                    </ion-list>
+                  </div>
+                </ion-card-content>
+              </ion-card>
+
+              <!-- Modal de Edição -->
+              <ion-card *ngIf="atribuicaoEditando" class="ion-margin-top">
+                <ion-card-header>
+                  <ion-card-title>Editando Atribuição</ion-card-title>
+                  <ion-card-subtitle>
+                    {{ getTextoMotorista(atribuicaoEditando) }} - {{
+                    getVanPorId(atribuicaoEditando.idVan)?.placa }}
+                  </ion-card-subtitle>
+                </ion-card-header>
+                <ion-card-content>
+                  <ion-item>
+                    <ion-label position="stacked">Novo Motorista</ion-label>
+                    <ion-select [(ngModel)]="atribuicaoEditando.idMotorista" interface="action-sheet">
+                      <ion-select-option *ngFor="let motorista of motoristas" [value]="motorista.id">
+                        {{ getTextoMotorista(motorista) }}
+                      </ion-select-option>
+                    </ion-select>
+                  </ion-item>
+
+                  <ion-item>
+                    <ion-label position="stacked">Nova Van</ion-label>
+                    <ion-select [(ngModel)]="atribuicaoEditando.idVan" interface="action-sheet">
+                      <ion-select-option *ngFor="let van of vans" [value]="van.id">
+                        {{ van.placa }} - Capacidade: {{ van.capacidade }}
+                      </ion-select-option>
+                    </ion-select>
+                  </ion-item>
+
+                  <div class="ion-margin-top">
+                    <ion-button expand="block" color="primary" (click)="salvarEdicaoAtribuicao()">
+                      <ion-icon name="save" slot="start"></ion-icon>
+                      Salvar Alterações
+                    </ion-button>
+                    <ion-button expand="block" color="medium" fill="outline" (click)="cancelarEdicaoAtribuicao()">
+                      <ion-icon name="close" slot="start"></ion-icon>
+                      Cancelar
+                    </ion-button>
+                  </div>
+                </ion-card-content>
+              </ion-card>
+            </div>
+          </div>
+        </div>
+
+        <!-- Área do Mural de Avisos -->
+        <div *ngIf="activeArea === 'mural'" class="area-content">
+          <h2><ion-icon name="megaphone"></ion-icon> Mural de Avisos</h2>
+
+          <!-- Formulário de Novo Aviso -->
+          <ion-card class="ion-margin-bottom">
+            <ion-card-header>
+              <ion-card-title>
+                <ion-icon name="create" color="primary"></ion-icon>
+                {{ avisoEditando ? 'Editar Aviso' : 'Novo Aviso' }}
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <form [formGroup]="novoAvisoForm">
+                <ion-item>
+                  <ion-label position="stacked">Título *</ion-label>
+                  <ion-input formControlName="titulo" placeholder="Digite o título do aviso" type="text">
+                  </ion-input>
+                </ion-item>
+                <ion-note color="danger"
+                  *ngIf="novoAvisoForm.get('titulo')?.invalid && novoAvisoForm.get('titulo')?.touched">
+                  Título deve ter pelo menos 5 caracteres
+                </ion-note>
+
+                <ion-item>
+                  <ion-label position="stacked">Mensagem *</ion-label>
+                  <ion-textarea formControlName="mensagem" placeholder="Digite a mensagem do aviso" rows="4">
+                  </ion-textarea>
+                </ion-item>
+                <ion-note color="danger"
+                  *ngIf="novoAvisoForm.get('mensagem')?.invalid && novoAvisoForm.get('mensagem')?.touched">
+                  Mensagem deve ter pelo menos 10 caracteres
+                </ion-note>
+
+                <ion-grid>
+                  <ion-row>
+                    <ion-col size="12" size-md="6">
+                      <ion-item>
+                        <ion-label position="stacked">Categoria *</ion-label>
+                        <ion-select formControlName="categoria" interface="action-sheet">
+                          <ion-select-option *ngFor="let categoria of categoriasAvisos" [value]="categoria">
+                            {{ categoria }}
+                          </ion-select-option>
+                        </ion-select>
+                      </ion-item>
+                    </ion-col>
+                    <ion-col size="12" size-md="6">
+                      <ion-item>
+                        <ion-label position="stacked">Prioridade *</ion-label>
+                        <ion-select formControlName="prioridade" interface="action-sheet">
+                          <ion-select-option value="alta">Alta</ion-select-option>
+                          <ion-select-option value="media">Média</ion-select-option>
+                          <ion-select-option value="baixa">Baixa</ion-select-option>
+                        </ion-select>
+                      </ion-item>
+                    </ion-col>
+                  </ion-row>
+                </ion-grid>
+
+                <ion-item>
+                  <ion-label position="stacked">Data de Expiração *</ion-label>
+                  <ion-input formControlName="dataExpiracao" type="date" required>
+                  </ion-input>
+                </ion-item>
+                <ion-note color="danger"
+                  *ngIf="novoAvisoForm.get('dataExpiracao')?.invalid && novoAvisoForm.get('dataExpiracao')?.touched">
+                  Data de expiração é obrigatória
+                </ion-note>
+                <div class="ion-margin-top">
+                  <ion-button expand="block" color="primary"
+                    (click)="avisoEditando ? salvarEdicaoAviso() : criarAviso()" [disabled]="!novoAvisoForm.valid">
+                    <ion-icon name="send" slot="start"></ion-icon>
+                    {{ avisoEditando ? 'Atualizar Aviso' : 'Publicar Aviso' }}
+                  </ion-button>
+
+                  <ion-button *ngIf="avisoEditando" expand="block" color="medium" fill="outline"
+                    (click)="cancelarEdicaoAviso()" class="ion-margin-top">
+                    <ion-icon name="close" slot="start"></ion-icon>
+                    Cancelar Edição
+                  </ion-button>
+                </div>
+              </form>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- Loading State -->
+          <div *ngIf="isLoadingAvisos" class="ion-text-center ion-padding">
+            <ion-spinner></ion-spinner>
+            <p>Carregando avisos...</p>
+          </div>
+
+          <!-- Lista de Avisos -->
+          <div *ngIf="!isLoadingAvisos">
+            <ion-list>
+              <ion-item-sliding *ngFor="let aviso of avisos">
+                <ion-item [class.aviso-expirado]="isAvisoExpirado(aviso)" class="aviso-item">
+                  <ion-label>
+                    <h3>
+                      <ion-icon [name]="getIconeCategoria(aviso.categoria)"
+                        [color]="getCorPrioridade(aviso.prioridade)">
+                      </ion-icon>
+                      {{ aviso.titulo }}
+                      <ion-badge [color]="getCorPrioridade(aviso.prioridade)" style="margin-left: 8px">
+                        {{ aviso.prioridade }}
+                      </ion-badge>
+                      <ion-badge color="medium" style="margin-left: 4px">
+                        {{ aviso.categoria }}
+                      </ion-badge>
+                      <ion-badge *ngIf="isAvisoExpirado(aviso)" color="danger" style="margin-left: 4px">
+                        Expirado
+                      </ion-badge>
+                    </h3>
+                    <p>{{ aviso.mensagem }}</p>
+                    <p>
+                      <small>
+                        <ion-icon name="person" color="medium"></ion-icon>
+                        Por: {{ aviso.autor }} |
+                        <ion-icon name="calendar" color="medium"></ion-icon>
+                        Publicado: {{ formatarData(aviso.dataPublicacao) }}
+                        <span *ngIf="aviso.dataExpiracao">
+                          | Expira: {{ formatarData(aviso.dataExpiracao) }}
+                        </span>
+                      </small>
+                    </p>
+                  </ion-label>
+                </ion-item>
+
+                <ion-item-options side="end">
+                  <ion-item-option color="primary" (click)="editarAviso(aviso)">
+                    <ion-icon slot="icon-only" name="create"></ion-icon>
+                  </ion-item-option>
+                  <ion-item-option color="danger" (click)="excluirAviso(aviso)">
+                    <ion-icon slot="icon-only" name="trash"></ion-icon>
+                  </ion-item-option>
+                </ion-item-options>
+              </ion-item-sliding>
+
+              <ion-item *ngIf="avisos.length === 0">
+                <ion-label class="ion-text-center">
+                  <ion-icon name="megaphone-outline" size="large"></ion-icon>
+                  <h3>Nenhum aviso publicado</h3>
+                  <p>Use o formulário acima para publicar o primeiro aviso</p>
+                </ion-label>
+              </ion-item>
+            </ion-list>
+          </div>
+        </div>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>
