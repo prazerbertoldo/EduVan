@@ -1,0 +1,1 @@
+O projeto desenvolvido é um aplicativo para uso de alunos e motoristas com o objetivo de gerenciar os alunos e as vans, além de auxiliar na montagem das rotas. O aplicativo tem o obijetivo de facilitar a organização dos alunos em suas rotas durante os periodos de transporte escolar.
